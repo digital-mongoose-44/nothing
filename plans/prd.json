@@ -63,7 +63,7 @@
       "Click the play button and verify it changes to a pause button",
       "Click the pause button and verify playback stops"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -97,7 +97,7 @@
       "Verify that keyboard controls work correctly",
       "Verify that ARIA labels are present on controls"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

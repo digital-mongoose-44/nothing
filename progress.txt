@@ -198,3 +198,49 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Audio Player with Play/Pause Controls
+
+### Feature Implemented
+"As a user, I want to see an audio player with play/pause controls so that I can control playback"
+
+### Implementation Summary
+- Created `app/components/AudioPlayer.tsx`: Full audio player component
+  - Uses React `useRef` for audio element control
+  - State management for `isPlaying`, `isLoaded`, and `error` states
+  - Event listeners for play, pause, canplay, and error audio events
+  - Play/pause button with distinct icons for each state
+  - Keyboard accessibility with Space/Enter key support
+  - ARIA label on play/pause button for screen readers
+- Updated `ChatMessage.tsx`:
+  - Imported AudioPlayer component
+  - Replaced RadioTrafficPlaceholder with AudioPlayer
+  - Removed unused placeholder component
+
+### Key Features
+- Large circular play/pause button (48x48px) with clear visual state
+- Play icon (triangle) and pause icon (two vertical bars) toggle based on state
+- Loading state shows "Loading audio..." text
+- Error state disables button and displays error message in red
+- Ready state shows "Ready to play" or "Playing..." text
+- Keyboard controls: Space or Enter to toggle play/pause
+- Focus ring for keyboard navigation visibility
+- Displays metadata: segment count, speaker count, incident ID, duration
+
+### Accessibility (PRD item 9 also satisfied)
+- Keyboard accessible: Tab to control, Space/Enter to activate
+- ARIA label dynamically updates ("Play" or "Pause")
+- Focus visible ring with proper offset
+- Button uses semantic `button` element with `type="button"`
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Seek bar for audio navigation (PRD item 7)
+- Time display with current/total duration (PRD item 8)
+- Consider implementing both together for complete playback controls
+- Transcription display features remain for future iterations
+
+---
+
