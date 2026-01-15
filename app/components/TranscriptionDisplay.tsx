@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import type { TranscriptionSegment } from "../types/ui-elements";
 
 interface TranscriptionDisplayProps {
@@ -68,16 +68,25 @@ function isSegmentActive(segment: TranscriptionSegment, currentTime: number | un
   return currentTime >= segment.startTime && currentTime < segment.endTime;
 }
 
+/** Time in ms to wait after user stops scrolling before resuming auto-scroll */
+const AUTO_SCROLL_RESUME_DELAY = 3000;
+
 /**
  * Displays transcription segments with speaker callsigns.
  * Each speaker is color-coded for easy identification.
  * Active segment is highlighted during playback.
  * Auto-scrolls to keep the active segment visible.
+ * Pauses auto-scroll when user manually scrolls.
  */
 export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDisplayProps) {
   // Refs for segment elements to enable auto-scroll
   const segmentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll pause state
+  const [isAutoScrollPaused, setIsAutoScrollPaused] = useState(false);
+  const isAutoScrolling = useRef(false);
+  const resumeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Build speaker color map to ensure consistent colors
   const speakerMap = new Map<string, number>();
@@ -94,19 +103,74 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
     isSegmentActive(segment, currentTime)
   );
 
-  // Auto-scroll to active segment when it changes
+  // Handle manual scroll detection
+  const handleScroll = useCallback(() => {
+    // If this scroll was triggered by auto-scroll, ignore it
+    if (isAutoScrolling.current) {
+      return;
+    }
+
+    // User is manually scrolling - pause auto-scroll
+    setIsAutoScrollPaused(true);
+
+    // Clear any existing resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+    }
+
+    // Set a timeout to resume auto-scroll after user stops scrolling
+    resumeTimeoutRef.current = setTimeout(() => {
+      setIsAutoScrollPaused(false);
+    }, AUTO_SCROLL_RESUME_DELAY);
+  }, []);
+
+  // Attach scroll event listener to container
   useEffect(() => {
-    if (activeSegmentIndex === -1) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      // Clean up timeout on unmount
+      if (resumeTimeoutRef.current) {
+        clearTimeout(resumeTimeoutRef.current);
+      }
+    };
+  }, [handleScroll]);
+
+  // Handler to manually resume auto-scroll
+  const handleResumeAutoScroll = useCallback(() => {
+    setIsAutoScrollPaused(false);
+    // Clear any pending resume timeout
+    if (resumeTimeoutRef.current) {
+      clearTimeout(resumeTimeoutRef.current);
+      resumeTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Auto-scroll to active segment when it changes (if not paused)
+  useEffect(() => {
+    if (activeSegmentIndex === -1 || isAutoScrollPaused) return;
 
     const activeElement = segmentRefs.current.get(activeSegmentIndex);
     if (!activeElement || !containerRef.current) return;
+
+    // Mark that we're auto-scrolling to avoid triggering the scroll handler
+    isAutoScrolling.current = true;
 
     // Scroll the active segment into view with smooth animation
     activeElement.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
     });
-  }, [activeSegmentIndex]);
+
+    // Reset the auto-scrolling flag after animation completes
+    // Using a timeout as scrollIntoView doesn't provide a callback
+    setTimeout(() => {
+      isAutoScrolling.current = false;
+    }, 500);
+  }, [activeSegmentIndex, isAutoScrollPaused]);
 
   if (segments.length === 0) {
     return (
@@ -120,9 +184,35 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
 
   return (
     <div className="mt-4">
-      <h3 className="mb-2 text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        Transcription
-      </h3>
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+          Transcription
+        </h3>
+        {isAutoScrollPaused && currentTime !== undefined && (
+          <button
+            type="button"
+            onClick={handleResumeAutoScroll}
+            className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 transition-colors"
+            aria-label="Resume auto-scroll"
+          >
+            <svg
+              className="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
+            </svg>
+            Resume auto-scroll
+          </button>
+        )}
+      </div>
       <div
         ref={containerRef}
         className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50 max-h-64 overflow-y-auto"

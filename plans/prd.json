@@ -172,7 +172,7 @@
       "Verify that auto-scroll pauses and does not fight user scrolling",
       "Verify that auto-scroll resumes when appropriate (e.g., after user stops scrolling)"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

@@ -495,3 +495,52 @@ Notes for the next iteration of Ralph.
 - Responsive design (PRD item 19) - component layout for different screen sizes
 
 ---
+
+## 2026-01-15: Auto-Scroll Pause on Manual Scroll
+
+### Feature Implemented
+"As a user, I want auto-scroll to pause when I manually scroll so that I can read at my own pace"
+
+### Implementation Summary
+- Updated `app/components/TranscriptionDisplay.tsx`:
+  - Added `useState` for `isAutoScrollPaused` to track pause state
+  - Added `useRef` for `isAutoScrolling` to track programmatic scrolls
+  - Added `useRef` for `resumeTimeoutRef` to manage resume timer
+  - Added `handleScroll` callback that detects manual user scrolling
+  - Added `handleResumeAutoScroll` callback for manual resume via button
+  - Modified auto-scroll effect to skip when `isAutoScrollPaused` is true
+  - Used `isAutoScrolling` flag to distinguish programmatic vs user scrolls
+  - Added scroll event listener to container with passive option for performance
+  - Auto-resume after 3 seconds of no manual scrolling via `AUTO_SCROLL_RESUME_DELAY`
+  - Added "Resume auto-scroll" button in header when paused during playback
+
+### Key Features
+- Detects manual scrolling by tracking programmatic scroll operations
+- Pauses auto-scroll immediately when user manually scrolls
+- Auto-resumes after 3 seconds of user inactivity (no scrolling)
+- "Resume auto-scroll" button appears when auto-scroll is paused during playback
+- Button has down-arrow icon for clear visual indication
+- Smooth UX: programmatic scrolls don't interfere with pause state
+- Proper cleanup of event listeners and timeouts on component unmount
+
+### Technical Details
+- `isAutoScrolling` ref set to `true` before programmatic `scrollIntoView` call
+- Reset to `false` after 500ms (approximate animation duration)
+- Scroll event handler ignores events when `isAutoScrolling.current` is true
+- `resumeTimeoutRef` cleared on each manual scroll to reset the 3-second timer
+- Button conditionally rendered only when `isAutoScrollPaused && currentTime !== undefined`
+
+### Accessibility
+- Resume button has `aria-label="Resume auto-scroll"` for screen readers
+- SVG icon is decorative (`aria-hidden="true"`)
+- Focus states and hover effects on the resume button
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Responsive design (PRD item 19) - component layout for different screen sizes
+- All other PRD items are now complete
+
+---
