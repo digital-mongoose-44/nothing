@@ -1,196 +1,230 @@
 [
   {
     "category": "functional",
-    "description": "As a user, I want to see a search icon in the navbar so that I can access the search functionality",
+    "description": "As a user, I want to type a command like 'Give me the radio traffic for ...' in the chat input so that I can request radio traffic playback",
     "steps": [
-      "Navigate to any page on the website",
-      "Look at the navbar",
-      "Verify that a search icon is visible in the navbar"
+      "Navigate to the chat interface",
+      "Type 'Give me the radio traffic for incident 123' in the chat input",
+      "Press enter or click send",
+      "Verify that the system recognizes the request as a radio traffic command"
     ],
     "passes": true
   },
   {
     "category": "functional",
-    "description": "As a user, I want to click the search icon to open a search overlay with a centered input field",
+    "description": "As a user, I want the system to detect UI elements with type 'radio' in LLM responses so that the appropriate playback component is rendered",
     "steps": [
-      "Navigate to any page on the website",
-      "Click on the search icon in the navbar",
-      "Verify that an overlay appears with a dimmed backdrop",
-      "Verify that a centered input field is displayed in the overlay",
-      "Verify that the input field is automatically focused"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want to press Command+F (Mac) or Ctrl+F (Windows/Linux) to open the search overlay",
-    "steps": [
-      "Navigate to any page on the website",
-      "Press Command+F on Mac or Ctrl+F on Windows/Linux",
-      "Verify that the search overlay opens",
-      "Verify that the input field is automatically focused",
-      "Verify that the browser's native find function is prevented"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want to see search results in real-time as I type in the search field",
-    "steps": [
-      "Open the search overlay",
-      "Start typing in the search input field",
-      "Verify that search results appear automatically without pressing Enter",
-      "Verify that results update with each keystroke",
-      "Verify that results are fetched from Algolia"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want search results to display the title of each matching item",
-    "steps": [
-      "Open the search overlay",
-      "Type a search query that matches existing content",
-      "Verify that each search result displays a title",
-      "Verify that results can include pages, events, persons, cities, countries, precincts, streets, and citations"
+      "Send a radio traffic request through the chat",
+      "Wait for the LLM response",
+      "Verify that the response containing a UI element with type 'radio' is correctly identified",
+      "Verify that the audio URL, transcription segments, and metadata are extracted from the payload"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a user, I want to click on a search result to navigate to that page",
+    "description": "As a user, I want malformed UI element data to be handled gracefully so that the application does not crash",
     "steps": [
-      "Open the search overlay",
-      "Type a search query",
-      "Click on one of the search results",
-      "Verify that the browser navigates to the corresponding page",
-      "Verify that the search overlay closes after navigation"
+      "Trigger an LLM response with incomplete or malformed radio UI element data",
+      "Verify that the system logs an appropriate error",
+      "Verify that the chat interface remains functional",
+      "Verify that an appropriate error message or fallback is displayed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a user, I want to see a localized 'no results' message when my search query returns no matches",
+    "description": "As a user, I want the system to fetch radio traffic data from the backend API so that I can listen to recordings",
     "steps": [
-      "Open the search overlay",
-      "Type a search query that matches no existing content",
-      "Verify that a localized 'no results' message is displayed",
-      "Verify that the message is appropriate for the current language (Swedish/English)"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want to close the search overlay by pressing the ESC key",
-    "steps": [
-      "Open the search overlay",
-      "Press the ESC key",
-      "Verify that the search overlay closes",
-      "Verify that focus returns to the page"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want to close the search overlay by clicking on the dimmed backdrop",
-    "steps": [
-      "Open the search overlay",
-      "Click anywhere on the dimmed backdrop outside the search input/results area",
-      "Verify that the search overlay closes"
-    ],
-    "passes": true
-  },
-  {
-    "category": "functional",
-    "description": "As a user, I want to navigate through search results using arrow keys",
-    "steps": [
-      "Open the search overlay",
-      "Type a search query that returns multiple results",
-      "Press the down arrow key",
-      "Verify that the first result is highlighted",
-      "Press the down arrow key again",
-      "Verify that the second result is highlighted",
-      "Press the up arrow key",
-      "Verify that the first result is highlighted again"
+      "Send a valid radio traffic request",
+      "Verify that an API call is made to the backend",
+      "Verify that a loading state is displayed while fetching",
+      "Verify that the response data is correctly received and processed"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a user, I want to select a highlighted search result by pressing Enter",
+    "description": "As a user, I want API errors to be handled properly so that I understand when something goes wrong",
     "steps": [
-      "Open the search overlay",
-      "Type a search query that returns multiple results",
-      "Use arrow keys to highlight a specific result",
-      "Press Enter",
-      "Verify that the browser navigates to the highlighted result's page",
-      "Verify that the search overlay closes"
+      "Send a radio traffic request that will result in an API error",
+      "Verify that the error is caught and handled",
+      "Verify that an appropriate error message is displayed in the chat"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a user, I want to see paginated search results with 20 results per page",
+    "description": "As a user, I want to see an audio player with play/pause controls so that I can control playback",
     "steps": [
-      "Open the search overlay",
-      "Type a search query that returns more than 20 results",
-      "Verify that only 20 results are displayed initially",
-      "Verify that pagination controls are visible",
-      "Click on the next page",
-      "Verify that the next 20 results are displayed"
+      "Request radio traffic and wait for the response",
+      "Verify that an audio player is displayed in the response",
+      "Verify that a play button is visible",
+      "Click the play button and verify it changes to a pause button",
+      "Click the pause button and verify playback stops"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a user, I want to see an error message if the search fails",
+    "description": "As a user, I want to see a seek bar on the audio player so that I can navigate through the recording",
     "steps": [
-      "Open the search overlay",
-      "Simulate an Algolia API failure (disconnect network or mock error)",
-      "Type a search query",
-      "Verify that an error message is displayed",
-      "Verify that the error message is localized and user-friendly"
+      "Request radio traffic and wait for the response",
+      "Verify that a seek bar is displayed showing progress",
+      "Click on a position in the seek bar",
+      "Verify that playback jumps to the clicked position"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a content editor, I want only documents with indexation not set to private to appear in search results",
+    "description": "As a user, I want to see current time and total duration on the audio player so that I know the recording length",
     "steps": [
-      "In Sanity CMS, create a document with indexation set to private",
-      "In Sanity CMS, create a document with indexation not set to private",
-      "Wait for Algolia sync to complete",
-      "Open the search overlay on the website",
-      "Search for both documents by title",
-      "Verify that only the non-private document appears in search results"
+      "Request radio traffic and wait for the response",
+      "Verify that the current time is displayed (starting at 0:00)",
+      "Verify that the total duration is displayed",
+      "Play the audio and verify the current time updates"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "As a user, I want the audio player to be keyboard accessible so that I can control it without a mouse",
+    "steps": [
+      "Request radio traffic and wait for the response",
+      "Tab to the audio player controls",
+      "Press Enter or Space to play/pause",
+      "Verify that keyboard controls work correctly",
+      "Verify that ARIA labels are present on controls"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a content editor, I want all publishable page types (page, event, person, city, country, precinct, street, citation) to be searchable",
+    "description": "As a user, I want to see transcription segments with speaker callsigns so that I know who is speaking",
     "steps": [
-      "Create one document of each type in Sanity (page, event, person, city, country, precinct, street, citation) with unique titles",
-      "Ensure all documents have indexation not set to private",
-      "Wait for Algolia sync to complete",
-      "Open the search overlay",
-      "Search for each document type by its unique title",
-      "Verify that each document type appears in search results"
+      "Request radio traffic and wait for the response",
+      "Verify that a transcription section is displayed",
+      "Verify that each segment has a speaker callsign label",
+      "Verify that callsigns are visually distinct from the transcription text"
     ],
     "passes": false
   },
   {
     "category": "functional",
-    "description": "As a content editor, I want search to find matches in both title and rich text content fields",
+    "description": "As a user, I want to see 'Unknown' displayed when a speaker cannot be identified so that I understand the limitation",
     "steps": [
-      "In Sanity, create a document with a specific word only in the title",
-      "In Sanity, create another document with a different specific word only in the rich text content",
-      "Wait for Algolia sync to complete",
-      "Open the search overlay",
-      "Search for the word that appears only in the title",
-      "Verify that the first document appears in results",
-      "Clear the search and search for the word that appears only in rich text",
-      "Verify that the second document appears in results"
+      "Request radio traffic that contains unidentified speakers",
+      "Verify that segments with unidentified speakers show 'Unknown' as the callsign",
+      "Verify that the 'Unknown' label is styled consistently with other callsigns"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want different speakers to be visually distinguished so that I can easily follow the conversation",
+    "steps": [
+      "Request radio traffic with multiple speakers",
+      "Verify that different speakers have distinct visual styling (color coding or similar)",
+      "Verify that the same speaker has consistent styling throughout the transcription"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want the current word to be highlighted during playback so that I can follow along",
+    "steps": [
+      "Request radio traffic and wait for the response",
+      "Start audio playback",
+      "Verify that the current word or phrase is highlighted",
+      "Verify that the highlight moves smoothly as playback progresses"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want the highlight to update when I seek to a different position so that synchronization is maintained",
+    "steps": [
+      "Request radio traffic and start playback",
+      "Seek to a different position using the seek bar",
+      "Verify that the transcription highlight immediately jumps to the correct word/phrase",
+      "Verify that playback and highlight remain synchronized"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want the transcription to auto-scroll during playback so that highlighted text stays visible",
+    "steps": [
+      "Request radio traffic with a long transcription",
+      "Start audio playback",
+      "Verify that the transcription container scrolls automatically",
+      "Verify that the highlighted text remains visible in the viewport"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want auto-scroll to pause when I manually scroll so that I can read at my own pace",
+    "steps": [
+      "Request radio traffic and start playback",
+      "Manually scroll the transcription container",
+      "Verify that auto-scroll pauses and does not fight user scrolling",
+      "Verify that auto-scroll resumes when appropriate (e.g., after user stops scrolling)"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want the radio traffic response to show a loading state while fetching so that I know the system is working",
+    "steps": [
+      "Send a radio traffic request",
+      "Verify that a loading skeleton or indicator is displayed",
+      "Wait for the data to load",
+      "Verify that the loading state is replaced with the actual content"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to see an error state when radio traffic cannot be loaded so that I understand what happened",
+    "steps": [
+      "Send a radio traffic request that will fail",
+      "Verify that an error message is displayed in the chat",
+      "Verify that the error message is descriptive and helpful"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want the radio traffic component to be responsive so that it works on different screen sizes",
+    "steps": [
+      "Request radio traffic on a desktop viewport",
+      "Verify that the layout displays correctly",
+      "Resize the browser to a mobile viewport",
+      "Verify that the layout adapts appropriately for the smaller screen"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to request multiple radio traffic recordings in the same chat session so that I can compare them",
+    "steps": [
+      "Send a radio traffic request and wait for the response",
+      "Send a second radio traffic request for different content",
+      "Verify that both responses are displayed in the chat",
+      "Verify that each response has independent playback controls"
+    ],
+    "passes": false
+  },
+  {
+    "category": "accessibility",
+    "description": "As a user, I want the transcription to have proper semantic HTML so that screen readers can interpret it correctly",
+    "steps": [
+      "Request radio traffic and wait for the response",
+      "Inspect the transcription HTML structure",
+      "Verify that appropriate semantic elements are used",
+      "Verify that speaker labels are correctly associated with their segments"
     ],
     "passes": false
   }
