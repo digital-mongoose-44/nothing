@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import type { RadioUIElementPayload } from "../types/ui-elements";
+import { TranscriptionDisplay } from "./TranscriptionDisplay";
 
 interface AudioPlayerProps {
   payload: RadioUIElementPayload;
@@ -277,6 +278,9 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
           </p>
         )}
       </div>
+
+      {/* Transcription */}
+      <TranscriptionDisplay segments={payload.transcription} />
     </div>
   );
 }

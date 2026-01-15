@@ -320,3 +320,44 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Transcription Display with Speaker Callsigns
+
+### Feature Implemented
+"As a user, I want to see transcription segments with speaker callsigns so that I know who is speaking"
+
+### Implementation Summary
+- Created `app/components/TranscriptionDisplay.tsx`: Component for displaying transcription segments
+  - Renders each segment with speaker callsign, timestamp range, and text
+  - Color-codes speakers for visual distinction (6-color palette)
+  - Displays "Unknown" for null speaker values with neutral gray styling
+  - Uses semantic HTML with role="list" and role="listitem" for accessibility
+- Updated `app/components/AudioPlayer.tsx`:
+  - Imported and integrated TranscriptionDisplay component
+  - Added transcription section below metadata
+
+### Key Features
+- Speaker callsigns displayed prominently at start of each segment
+- Timestamps shown in mm:ss format (startTime - endTime)
+- 6 distinct speaker colors: blue, emerald, purple, amber, rose, cyan
+- Consistent color assignment: same speaker always gets same color
+- "Unknown" label for unidentified speakers with neutral gray styling
+- Bordered segment cards with color-coded backgrounds
+- Empty state message when no transcription segments exist
+
+### Accessibility
+- Container uses `role="list"` with `aria-label="Transcription segments"`
+- Each segment uses `role="listitem"`
+- Speaker labels have `aria-label="Speaker: [name]"`
+- Proper color contrast for readability in both light and dark modes
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next features: "Unknown" speaker display (PRD item 11) and speaker color coding (PRD item 12) are already satisfied by this implementation
+- Word-level highlighting during playback (PRD item 13) will require audio-text synchronization
+- Auto-scroll during playback (PRD item 15) will need scroll container management
+
+---
+

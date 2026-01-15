@@ -108,7 +108,7 @@
       "Verify that each segment has a speaker callsign label",
       "Verify that callsigns are visually distinct from the transcription text"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
