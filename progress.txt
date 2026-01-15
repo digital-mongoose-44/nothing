@@ -244,3 +244,44 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Audio Player Seek Bar
+
+### Feature Implemented
+"As a user, I want to see a seek bar on the audio player so that I can navigate through the recording"
+
+### Implementation Summary
+- Updated `app/components/AudioPlayer.tsx`:
+  - Added `currentTime` and `duration` state variables
+  - Added `handleTimeUpdate` callback to track audio playback position
+  - Added `handleLoadedMetadata` callback to capture audio duration
+  - Added `handleSeek` callback to handle seek bar input changes
+  - Replaced text status ("Ready to play"/"Playing...") with interactive seek bar
+  - Added event listeners for `timeupdate` and `loadedmetadata` audio events
+
+### Key Features
+- Interactive range input (`<input type="range">`) styled as a seek bar
+- Real-time progress tracking during playback via `timeupdate` event
+- Click/drag anywhere on the seek bar to jump to that position
+- Custom styling for the slider thumb (14px circular, blue color with white border)
+- Track styling with rounded corners (8px height)
+- Cross-browser support with both webkit and moz pseudo-element styles
+- Loading and error states preserved (seek bar only appears when audio is loaded)
+
+### Accessibility
+- ARIA attributes: `aria-label="Seek audio position"`
+- Live value announcements: `aria-valuenow`, `aria-valuemin`, `aria-valuemax`
+- Human-readable value text: `aria-valuetext` (e.g., "30 of 120 seconds")
+- Focus-visible outline for keyboard navigation
+- Keyboard operable (arrow keys to adjust position)
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Time display with current/total duration (PRD item 8)
+- The `currentTime` and `duration` state are already available; need to add formatted time display
+- Transcription display features remain for future iterations
+
+---
+

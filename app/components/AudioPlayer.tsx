@@ -16,6 +16,8 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
   const speakerCount = new Set(
     payload.transcription.map((s) => s.speaker ?? "Unknown")
@@ -53,6 +55,29 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     setIsLoaded(false);
   }, []);
 
+  const handleTimeUpdate = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      setCurrentTime(audio.currentTime);
+    }
+  }, []);
+
+  const handleLoadedMetadata = useCallback(() => {
+    const audio = audioRef.current;
+    if (audio) {
+      setDuration(audio.duration);
+    }
+  }, []);
+
+  const handleSeek = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const audio = audioRef.current;
+    if (audio) {
+      const newTime = parseFloat(event.target.value);
+      audio.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  }, []);
+
   // Handle keyboard controls for play/pause
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -72,14 +97,18 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     audio.addEventListener("pause", handlePause);
     audio.addEventListener("canplay", handleCanPlay);
     audio.addEventListener("error", handleError);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
 
     return () => {
       audio.removeEventListener("play", handlePlay);
       audio.removeEventListener("pause", handlePause);
       audio.removeEventListener("canplay", handleCanPlay);
       audio.removeEventListener("error", handleError);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     };
-  }, [handlePlay, handlePause, handleCanPlay, handleError]);
+  }, [handlePlay, handlePause, handleCanPlay, handleError, handleTimeUpdate, handleLoadedMetadata]);
 
   return (
     <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
@@ -150,9 +179,59 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
               Loading audio...
             </p>
           ) : (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
-              {isPlaying ? "Playing..." : "Ready to play"}
-            </p>
+            <div className="flex flex-col gap-1">
+              {/* Seek bar */}
+              <input
+                type="range"
+                min={0}
+                max={duration || 0}
+                step={0.1}
+                value={currentTime}
+                onChange={handleSeek}
+                className="seek-bar h-2 w-full cursor-pointer appearance-none rounded-full bg-zinc-200 dark:bg-zinc-700"
+                aria-label="Seek audio position"
+                aria-valuemin={0}
+                aria-valuemax={duration}
+                aria-valuenow={currentTime}
+                aria-valuetext={`${Math.floor(currentTime)} of ${Math.floor(duration)} seconds`}
+              />
+              <style>{`
+                .seek-bar::-webkit-slider-thumb {
+                  appearance: none;
+                  width: 14px;
+                  height: 14px;
+                  border-radius: 50%;
+                  background: #2563eb;
+                  cursor: pointer;
+                  border: 2px solid white;
+                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                }
+                .seek-bar::-moz-range-thumb {
+                  width: 14px;
+                  height: 14px;
+                  border-radius: 50%;
+                  background: #2563eb;
+                  cursor: pointer;
+                  border: 2px solid white;
+                  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+                }
+                .seek-bar::-webkit-slider-runnable-track {
+                  height: 8px;
+                  border-radius: 4px;
+                }
+                .seek-bar::-moz-range-track {
+                  height: 8px;
+                  border-radius: 4px;
+                }
+                .seek-bar:focus {
+                  outline: none;
+                }
+                .seek-bar:focus-visible {
+                  outline: 2px solid #3b82f6;
+                  outline-offset: 2px;
+                }
+              `}</style>
+            </div>
           )}
         </div>
       </div>

@@ -74,7 +74,7 @@
       "Click on a position in the seek bar",
       "Verify that playback jumps to the clicked position"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
