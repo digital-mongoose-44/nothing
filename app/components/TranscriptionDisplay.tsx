@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import type { TranscriptionSegment } from "../types/ui-elements";
 
 interface TranscriptionDisplayProps {
@@ -71,8 +72,13 @@ function isSegmentActive(segment: TranscriptionSegment, currentTime: number | un
  * Displays transcription segments with speaker callsigns.
  * Each speaker is color-coded for easy identification.
  * Active segment is highlighted during playback.
+ * Auto-scrolls to keep the active segment visible.
  */
 export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDisplayProps) {
+  // Refs for segment elements to enable auto-scroll
+  const segmentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // Build speaker color map to ensure consistent colors
   const speakerMap = new Map<string, number>();
 
@@ -82,6 +88,25 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
       speakerMap.set(segment.speaker, speakerMap.size % SPEAKER_COLORS.length);
     }
   });
+
+  // Find the currently active segment index
+  const activeSegmentIndex = segments.findIndex((segment) =>
+    isSegmentActive(segment, currentTime)
+  );
+
+  // Auto-scroll to active segment when it changes
+  useEffect(() => {
+    if (activeSegmentIndex === -1) return;
+
+    const activeElement = segmentRefs.current.get(activeSegmentIndex);
+    if (!activeElement || !containerRef.current) return;
+
+    // Scroll the active segment into view with smooth animation
+    activeElement.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [activeSegmentIndex]);
 
   if (segments.length === 0) {
     return (
@@ -99,7 +124,8 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
         Transcription
       </h3>
       <div
-        className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50"
+        ref={containerRef}
+        className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50 max-h-64 overflow-y-auto"
         role="list"
         aria-label="Transcription segments"
       >
@@ -111,6 +137,13 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
           return (
             <div
               key={`${segment.startTime}-${index}`}
+              ref={(el) => {
+                if (el) {
+                  segmentRefs.current.set(index, el);
+                } else {
+                  segmentRefs.current.delete(index);
+                }
+              }}
               className={`rounded-md border p-2 transition-all duration-200 ${colors.border} ${colors.bg} ${
                 isActive
                   ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-zinc-800 scale-[1.01]"

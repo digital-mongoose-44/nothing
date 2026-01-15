@@ -455,3 +455,43 @@ Notes for the next iteration of Ralph.
 
 ---
 
+
+## 2026-01-15: Auto-Scroll During Playback
+
+### Feature Implemented
+"As a user, I want the transcription to auto-scroll during playback so that highlighted text stays visible"
+
+### Implementation Summary
+- Updated `app/components/TranscriptionDisplay.tsx`:
+  - Added `useRef` imports from React for DOM element references
+  - Added `segmentRefs` ref (Map<number, HTMLDivElement>) to store references to each segment element
+  - Added `containerRef` ref to access the scrollable container
+  - Added `max-h-64 overflow-y-auto` classes to container for scrollable viewport
+  - Computed `activeSegmentIndex` using `findIndex` to identify currently playing segment
+  - Added `useEffect` hook that triggers when `activeSegmentIndex` changes
+  - Used `scrollIntoView({ behavior: "smooth", block: "nearest" })` for smooth auto-scroll
+  - Added ref callback on each segment div to populate the refs map
+
+### Key Features
+- Scrollable transcription container with max height (256px / 16rem)
+- Smooth animated scrolling when active segment changes
+- Uses `block: "nearest"` to minimize scroll distance (only scrolls if needed)
+- Refs stored in Map for efficient lookup by segment index
+- Cleanup handled via ref callback (removes refs when elements unmount)
+- Auto-scroll triggers only when a segment is active (not when no segment is playing)
+
+### Technical Details
+- Container uses `overflow-y-auto` for vertical scrolling with automatic scrollbar
+- `scrollIntoView` is called on the segment element, scrolling within the container
+- Effect dependency is `activeSegmentIndex`, so scroll only happens on segment change (not every frame)
+- Ref callback pattern ensures refs are always current even during re-renders
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Auto-scroll pause on manual scroll (PRD item 16) - requires detecting user scroll events
+- Responsive design (PRD item 19) - component layout for different screen sizes
+
+---

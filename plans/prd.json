@@ -161,7 +161,7 @@
       "Verify that the transcription container scrolls automatically",
       "Verify that the highlighted text remains visible in the viewport"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
