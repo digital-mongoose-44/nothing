@@ -158,3 +158,43 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: API Error Handling with Visual Display
+
+### Feature Implemented
+"As a user, I want API errors to be handled properly so that I understand when something goes wrong"
+
+### Implementation Summary
+- Updated `app/types/ui-elements.ts`:
+  - Added `APIError` interface with `type` (not_found, server_error, network_error), `message`, and optional `incidentId`
+  - Extended `ParsedContent` interface to include optional `apiError` field
+- Updated `ChatMessage.tsx`:
+  - Added `APIErrorDisplay` component with red/error styling (distinct from amber parse errors)
+  - Component displays context-specific icons for each error type
+  - Shows error title, message, incident ID, and actionable suggestion
+  - Uses `role="alert"` for accessibility
+- Updated `Chat.tsx`:
+  - Extended `fetchRadioTraffic()` to return `errorCode` from API response
+  - Added `createAPIError()` function to convert API error codes to structured `APIError` objects
+  - API errors now render as styled error cards instead of plain text
+
+### Key Features
+- Three distinct error types with unique icons and messaging:
+  - `not_found`: Search icon, "Incident Not Found", suggests verifying incident number
+  - `server_error`: Exclamation circle icon, "Server Error", suggests trying again later
+  - `network_error`: WiFi-off icon, "Connection Error", suggests checking internet connection
+- Visual distinction between API errors (red) and parse errors (amber)
+- Structured error information includes incident ID for debugging
+- Test commands remain: incident 999 (not found), incident "error" (server error)
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Audio player with play/pause controls (PRD item 6)
+- This is the major UI component that will enable actual audio playback
+- Consider implementing seek bar and time display in the same iteration for cohesive UX
+- The API integration and error handling infrastructure is now complete
+
+---
+

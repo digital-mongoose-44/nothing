@@ -51,7 +51,7 @@
       "Verify that the error is caught and handled",
       "Verify that an appropriate error message is displayed in the chat"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

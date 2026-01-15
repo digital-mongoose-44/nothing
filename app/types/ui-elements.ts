@@ -32,10 +32,21 @@ export interface ParseError {
   rawContent: string;
 }
 
+/**
+ * Represents an API error when fetching radio traffic data.
+ * Used to display user-friendly error messages with proper styling.
+ */
+export interface APIError {
+  type: "not_found" | "server_error" | "network_error";
+  message: string;
+  incidentId?: string;
+}
+
 export interface ParsedContent {
   text: string;
   uiElements: UIElement[];
   errors: ParseError[];
+  apiError?: APIError;
 }
 
 /**

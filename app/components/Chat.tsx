@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage, type Message } from "./ChatMessage";
-import { parseUIElements, type ParsedContent } from "../types/ui-elements";
+import { parseUIElements, type ParsedContent, type APIError } from "../types/ui-elements";
 import type { RadioTrafficResponse, RadioTrafficErrorResponse } from "../api/radio-traffic/route";
 
 function generateId(): string {
@@ -102,6 +102,7 @@ async function fetchRadioTraffic(incidentId: string): Promise<{
   success: boolean;
   data?: RadioTrafficResponse;
   error?: string;
+  errorCode?: string;
 }> {
   try {
     const response = await fetch("/api/radio-traffic", {
@@ -117,6 +118,7 @@ async function fetchRadioTraffic(incidentId: string): Promise<{
       return {
         success: false,
         error: errorData.error || `Request failed with status ${response.status}`,
+        errorCode: errorData.code,
       };
     }
 
@@ -126,8 +128,36 @@ async function fetchRadioTraffic(incidentId: string): Promise<{
     return {
       success: false,
       error: err instanceof Error ? err.message : "Failed to fetch radio traffic",
+      errorCode: "NETWORK_ERROR",
     };
   }
+}
+
+/**
+ * Converts an API error code to an APIError type.
+ */
+function createAPIError(errorCode: string | undefined, errorMessage: string, incidentId: string): APIError {
+  let type: APIError["type"];
+
+  switch (errorCode) {
+    case "INCIDENT_NOT_FOUND":
+    case "MISSING_INCIDENT_ID":
+      type = "not_found";
+      break;
+    case "NETWORK_ERROR":
+      type = "network_error";
+      break;
+    case "INTERNAL_ERROR":
+    default:
+      type = "server_error";
+      break;
+  }
+
+  return {
+    type,
+    message: errorMessage,
+    incidentId,
+  };
 }
 
 /**
@@ -193,12 +223,14 @@ export function Chat() {
         responseContent = formatRadioResponse(result.data);
         parsedContent = parseUIElements(responseContent);
       } else {
-        // API error - display error message
-        responseContent = `Unable to fetch radio traffic for incident ${incidentId}: ${result.error}`;
+        // API error - display structured error with proper styling
+        const apiError = createAPIError(result.errorCode, result.error ?? "Unknown error", incidentId);
+        responseContent = "";
         parsedContent = {
           text: responseContent,
           uiElements: [],
           errors: [],
+          apiError,
         };
       }
     } else {

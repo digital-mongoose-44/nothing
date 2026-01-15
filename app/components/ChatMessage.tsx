@@ -1,4 +1,4 @@
-import type { ParsedContent, RadioUIElement, ParseError } from "../types/ui-elements";
+import type { ParsedContent, RadioUIElement, ParseError, APIError } from "../types/ui-elements";
 
 export interface Message {
   id: string;
@@ -55,6 +55,103 @@ function UIElementError({ error }: { error: ParseError }) {
               </pre>
             </details>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Component to display API errors when fetching radio traffic fails.
+ * Shows a user-friendly error message with actionable suggestions.
+ */
+function APIErrorDisplay({ error }: { error: APIError }) {
+  const getErrorIcon = () => {
+    switch (error.type) {
+      case "not_found":
+        return (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
+        );
+      case "server_error":
+        return (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
+        );
+      case "network_error":
+        return (
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"
+          />
+        );
+    }
+  };
+
+  const getTitle = () => {
+    switch (error.type) {
+      case "not_found":
+        return "Incident Not Found";
+      case "server_error":
+        return "Server Error";
+      case "network_error":
+        return "Connection Error";
+    }
+  };
+
+  const getSuggestion = () => {
+    switch (error.type) {
+      case "not_found":
+        return "Please verify the incident number and try again.";
+      case "server_error":
+        return "The server encountered an error. Please try again later.";
+      case "network_error":
+        return "Please check your internet connection and try again.";
+    }
+  };
+
+  return (
+    <div
+      className="mt-3 rounded-lg border border-red-300 bg-red-50 p-4 dark:border-red-800 dark:bg-red-950"
+      role="alert"
+    >
+      <div className="flex items-start gap-3">
+        <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-red-200 dark:bg-red-900">
+          <svg
+            className="h-4 w-4 text-red-700 dark:text-red-300"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            aria-hidden="true"
+          >
+            {getErrorIcon()}
+          </svg>
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-red-800 dark:text-red-200">
+            {getTitle()}
+          </p>
+          <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+            {error.message}
+          </p>
+          {error.incidentId && (
+            <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+              Incident ID: {error.incidentId}
+            </p>
+          )}
+          <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+            {getSuggestion()}
+          </p>
         </div>
       </div>
     </div>
@@ -133,6 +230,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Get parsing errors if present
   const parseErrors = parsedContent?.errors ?? [];
 
+  // Get API error if present
+  const apiError = parsedContent?.apiError;
+
   // Use parsed text if available, otherwise fall back to raw content
   const displayText = parsedContent?.text ?? message.content;
 
@@ -157,6 +257,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {parseErrors.map((error, index) => (
           <UIElementError key={`error-${index}`} error={error} />
         ))}
+        {apiError && <APIErrorDisplay error={apiError} />}
       </div>
     </div>
   );
