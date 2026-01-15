@@ -183,9 +183,9 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
   }
 
   return (
-    <div className="mt-4">
+    <div className="mt-3 sm:mt-4">
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        <h3 className="text-xs sm:text-sm font-medium text-zinc-700 dark:text-zinc-300">
           Transcription
         </h3>
         {isAutoScrollPaused && currentTime !== undefined && (
@@ -209,13 +209,13 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
                 d="M19 14l-7 7m0 0l-7-7m7 7V3"
               />
             </svg>
-            Resume auto-scroll
+Resume auto-scroll
           </button>
         )}
       </div>
       <div
         ref={containerRef}
-        className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-800/50 max-h-64 overflow-y-auto"
+        className="space-y-2 rounded-lg border border-zinc-200 bg-zinc-50 p-2 sm:p-3 dark:border-zinc-700 dark:bg-zinc-800/50 max-h-48 sm:max-h-64 overflow-y-auto"
         role="list"
         aria-label="Transcription segments"
       >
@@ -234,7 +234,7 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
                   segmentRefs.current.delete(index);
                 }
               }}
-              className={`rounded-md border p-2 transition-all duration-200 ${colors.border} ${colors.bg} ${
+              className={`rounded-md border p-1.5 sm:p-2 transition-all duration-200 ${colors.border} ${colors.bg} ${
                 isActive
                   ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-zinc-800 scale-[1.01]"
                   : ""
@@ -242,9 +242,9 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
               role="listitem"
               aria-current={isActive ? "true" : undefined}
             >
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mb-1">
                 <span
-                  className={`text-xs font-semibold px-2 py-0.5 rounded ${colors.text}`}
+                  className={`text-xs font-semibold px-1.5 sm:px-2 py-0.5 rounded ${colors.text}`}
                   aria-label={`Speaker: ${speakerName}`}
                 >
                   {speakerName}
@@ -253,12 +253,13 @@ export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDis
                   {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
                 </span>
                 {isActive && (
-                  <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full animate-pulse">
-                    Now Playing
+                  <span className="text-xs bg-blue-500 text-white px-1.5 sm:px-2 py-0.5 rounded-full animate-pulse">
+                    <span className="hidden sm:inline">Now Playing</span>
+                    <span className="sm:hidden">Playing</span>
                   </span>
                 )}
               </div>
-              <p className={`text-sm ${isActive ? "font-medium text-zinc-900 dark:text-zinc-100" : "text-zinc-800 dark:text-zinc-200"}`}>
+              <p className={`text-xs sm:text-sm ${isActive ? "font-medium text-zinc-900 dark:text-zinc-100" : "text-zinc-800 dark:text-zinc-200"}`}>
                 {segment.text}
               </p>
             </div>

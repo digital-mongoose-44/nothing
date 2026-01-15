@@ -204,7 +204,7 @@
       "Resize the browser to a mobile viewport",
       "Verify that the layout adapts appropriately for the smaller screen"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

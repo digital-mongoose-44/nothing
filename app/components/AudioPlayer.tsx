@@ -126,12 +126,12 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
   }, [handlePlay, handlePause, handleCanPlay, handleError, handleTimeUpdate, handleLoadedMetadata]);
 
   return (
-    <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-900">
+    <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:p-4 dark:border-zinc-700 dark:bg-zinc-900">
       {/* Header */}
       <div className="mb-3 flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900">
+        <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
           <svg
-            className="h-4 w-4 text-blue-600 dark:text-blue-400"
+            className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -145,26 +145,26 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
             />
           </svg>
         </div>
-        <span className="font-medium">Radio Traffic Recording</span>
+        <span className="font-medium text-sm sm:text-base">Radio Traffic Recording</span>
       </div>
 
       {/* Audio element - hidden */}
       <audio ref={audioRef} src={payload.audioUrl} preload="metadata" />
 
       {/* Play/Pause Controls */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={handlePlayPause}
           onKeyDown={handleKeyDown}
           disabled={!!error}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-400 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-zinc-900"
+          className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-400 dark:bg-blue-500 dark:hover:bg-blue-600 dark:focus:ring-offset-zinc-900 shrink-0"
           aria-label={isPlaying ? "Pause" : "Play"}
         >
           {isPlaying ? (
             // Pause icon
             <svg
-              className="h-6 w-6"
+              className="h-5 w-5 sm:h-6 sm:w-6"
               fill="currentColor"
               viewBox="0 0 24 24"
               aria-hidden="true"
@@ -175,7 +175,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
           ) : (
             // Play icon
             <svg
-              className="h-6 w-6 translate-x-0.5"
+              className="h-5 w-5 sm:h-6 sm:w-6 translate-x-0.5"
               fill="currentColor"
               viewBox="0 0 24 24"
               aria-hidden="true"
@@ -257,7 +257,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
       </div>
 
       {/* Metadata */}
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm text-zinc-600 dark:text-zinc-400">
+      <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 sm:flex sm:flex-wrap sm:gap-x-4">
         <p>
           <span className="font-medium">Segments:</span>{" "}
           {payload.transcription.length}
