@@ -85,7 +85,7 @@
       "Verify that the total duration is displayed",
       "Play the audio and verify the current time updates"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",

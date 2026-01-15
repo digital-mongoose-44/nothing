@@ -285,3 +285,38 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Audio Player Time Display
+
+### Feature Implemented
+"As a user, I want to see current time and total duration on the audio player so that I know the recording length"
+
+### Implementation Summary
+- Updated `app/components/AudioPlayer.tsx`:
+  - Added `formatTime()` helper function to convert seconds to mm:ss format
+  - Function handles edge cases: negative values, non-finite numbers (NaN, Infinity)
+  - Added time display below the seek bar showing current time and total duration
+  - Time display positioned with flexbox: current time left-aligned, duration right-aligned
+
+### Key Features
+- Time format: mm:ss (e.g., "0:00", "1:23", "10:45")
+- Current time updates in real-time during playback via existing `timeupdate` event listener
+- Duration populates when audio metadata loads via existing `loadedmetadata` event listener
+- Styled with small text (text-xs) and muted color for subtle appearance
+- ARIA labels on both time elements for screen reader accessibility
+
+### Accessibility
+- `aria-label="Current time"` on the current time span
+- `aria-label="Total duration"` on the duration span
+- Text color has sufficient contrast (zinc-500 on light, zinc-400 on dark)
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Transcription segments with speaker callsigns (PRD item 10)
+- The audio player is now feature-complete with play/pause, seek bar, and time display
+- Transcription display will require synchronization between audio playback and text highlighting
+
+---
+

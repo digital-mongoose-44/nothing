@@ -8,6 +8,20 @@ interface AudioPlayerProps {
 }
 
 /**
+ * Formats seconds into mm:ss format.
+ * @param seconds - Time in seconds
+ * @returns Formatted time string (e.g., "1:23" or "0:05")
+ */
+function formatTime(seconds: number): string {
+  if (!isFinite(seconds) || seconds < 0) {
+    return "0:00";
+  }
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
+}
+
+/**
  * Audio player component for radio traffic playback.
  * Provides play/pause controls for audio recordings.
  */
@@ -195,6 +209,11 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
                 aria-valuenow={currentTime}
                 aria-valuetext={`${Math.floor(currentTime)} of ${Math.floor(duration)} seconds`}
               />
+              {/* Time display */}
+              <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
+                <span aria-label="Current time">{formatTime(currentTime)}</span>
+                <span aria-label="Total duration">{formatTime(duration)}</span>
+              </div>
               <style>{`
                 .seek-bar::-webkit-slider-thumb {
                   appearance: none;
