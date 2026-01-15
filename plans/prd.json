@@ -1,0 +1,197 @@
+[
+  {
+    "category": "functional",
+    "description": "As a user, I want to see a search icon in the navbar so that I can access the search functionality",
+    "steps": [
+      "Navigate to any page on the website",
+      "Look at the navbar",
+      "Verify that a search icon is visible in the navbar"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to click the search icon to open a search overlay with a centered input field",
+    "steps": [
+      "Navigate to any page on the website",
+      "Click on the search icon in the navbar",
+      "Verify that an overlay appears with a dimmed backdrop",
+      "Verify that a centered input field is displayed in the overlay",
+      "Verify that the input field is automatically focused"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to press Command+F (Mac) or Ctrl+F (Windows/Linux) to open the search overlay",
+    "steps": [
+      "Navigate to any page on the website",
+      "Press Command+F on Mac or Ctrl+F on Windows/Linux",
+      "Verify that the search overlay opens",
+      "Verify that the input field is automatically focused",
+      "Verify that the browser's native find function is prevented"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to see search results in real-time as I type in the search field",
+    "steps": [
+      "Open the search overlay",
+      "Start typing in the search input field",
+      "Verify that search results appear automatically without pressing Enter",
+      "Verify that results update with each keystroke",
+      "Verify that results are fetched from Algolia"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want search results to display the title of each matching item",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query that matches existing content",
+      "Verify that each search result displays a title",
+      "Verify that results can include pages, events, persons, cities, countries, precincts, streets, and citations"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to click on a search result to navigate to that page",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query",
+      "Click on one of the search results",
+      "Verify that the browser navigates to the corresponding page",
+      "Verify that the search overlay closes after navigation"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to see a localized 'no results' message when my search query returns no matches",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query that matches no existing content",
+      "Verify that a localized 'no results' message is displayed",
+      "Verify that the message is appropriate for the current language (Swedish/English)"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to close the search overlay by pressing the ESC key",
+    "steps": [
+      "Open the search overlay",
+      "Press the ESC key",
+      "Verify that the search overlay closes",
+      "Verify that focus returns to the page"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to close the search overlay by clicking on the dimmed backdrop",
+    "steps": [
+      "Open the search overlay",
+      "Click anywhere on the dimmed backdrop outside the search input/results area",
+      "Verify that the search overlay closes"
+    ],
+    "passes": true
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to navigate through search results using arrow keys",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query that returns multiple results",
+      "Press the down arrow key",
+      "Verify that the first result is highlighted",
+      "Press the down arrow key again",
+      "Verify that the second result is highlighted",
+      "Press the up arrow key",
+      "Verify that the first result is highlighted again"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to select a highlighted search result by pressing Enter",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query that returns multiple results",
+      "Use arrow keys to highlight a specific result",
+      "Press Enter",
+      "Verify that the browser navigates to the highlighted result's page",
+      "Verify that the search overlay closes"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to see paginated search results with 20 results per page",
+    "steps": [
+      "Open the search overlay",
+      "Type a search query that returns more than 20 results",
+      "Verify that only 20 results are displayed initially",
+      "Verify that pagination controls are visible",
+      "Click on the next page",
+      "Verify that the next 20 results are displayed"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a user, I want to see an error message if the search fails",
+    "steps": [
+      "Open the search overlay",
+      "Simulate an Algolia API failure (disconnect network or mock error)",
+      "Type a search query",
+      "Verify that an error message is displayed",
+      "Verify that the error message is localized and user-friendly"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a content editor, I want only documents with indexation not set to private to appear in search results",
+    "steps": [
+      "In Sanity CMS, create a document with indexation set to private",
+      "In Sanity CMS, create a document with indexation not set to private",
+      "Wait for Algolia sync to complete",
+      "Open the search overlay on the website",
+      "Search for both documents by title",
+      "Verify that only the non-private document appears in search results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a content editor, I want all publishable page types (page, event, person, city, country, precinct, street, citation) to be searchable",
+    "steps": [
+      "Create one document of each type in Sanity (page, event, person, city, country, precinct, street, citation) with unique titles",
+      "Ensure all documents have indexation not set to private",
+      "Wait for Algolia sync to complete",
+      "Open the search overlay",
+      "Search for each document type by its unique title",
+      "Verify that each document type appears in search results"
+    ],
+    "passes": false
+  },
+  {
+    "category": "functional",
+    "description": "As a content editor, I want search to find matches in both title and rich text content fields",
+    "steps": [
+      "In Sanity, create a document with a specific word only in the title",
+      "In Sanity, create another document with a different specific word only in the rich text content",
+      "Wait for Algolia sync to complete",
+      "Open the search overlay",
+      "Search for the word that appears only in the title",
+      "Verify that the first document appears in results",
+      "Clear the search and search for the word that appears only in rich text",
+      "Verify that the second document appears in results"
+    ],
+    "passes": false
+  }
+]
