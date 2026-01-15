@@ -47,6 +47,7 @@ export interface ParsedContent {
   uiElements: UIElement[];
   errors: ParseError[];
   apiError?: APIError;
+  isLoading?: boolean;
 }
 
 /**

@@ -118,7 +118,7 @@
       "Verify that segments with unidentified speakers show 'Unknown' as the callsign",
       "Verify that the 'Unknown' label is styled consistently with other callsigns"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -128,7 +128,7 @@
       "Verify that different speakers have distinct visual styling (color coding or similar)",
       "Verify that the same speaker has consistent styling throughout the transcription"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -183,7 +183,7 @@
       "Wait for the data to load",
       "Verify that the loading state is replaced with the actual content"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -193,7 +193,7 @@
       "Verify that an error message is displayed in the chat",
       "Verify that the error message is descriptive and helpful"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -215,7 +215,7 @@
       "Verify that both responses are displayed in the chat",
       "Verify that each response has independent playback controls"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "accessibility",
@@ -226,6 +226,6 @@
       "Verify that appropriate semantic elements are used",
       "Verify that speaker labels are correctly associated with their segments"
     ],
-    "passes": false
+    "passes": true
   }
 ]

@@ -361,3 +361,52 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Loading Skeleton for Radio Traffic Response
+
+### Feature Implemented
+"As a user, I want the radio traffic response to show a loading state while fetching so that I know the system is working"
+
+### Implementation Summary
+- Created `app/components/AudioPlayerSkeleton.tsx`: Loading skeleton that matches the AudioPlayer layout
+  - Animated pulse effect using `animate-pulse` Tailwind class
+  - Matches the structure of AudioPlayer: header, play button, seek bar, metadata, transcription
+  - Proper accessibility with `role="status"` and `aria-label`
+  - Screen reader text for loading state
+- Updated `app/types/ui-elements.ts`:
+  - Added `isLoading?: boolean` to `ParsedContent` interface
+- Updated `app/components/ChatMessage.tsx`:
+  - Imported AudioPlayerSkeleton component
+  - Added `isLoading` check from parsedContent
+  - Shows skeleton when loading, hides actual AudioPlayer components
+- Updated `app/components/Chat.tsx`:
+  - Modified radio traffic flow to show skeleton immediately when request starts
+  - Creates a loading message with `isLoading: true` that shows the skeleton
+  - Updates the same message with actual content when API responds
+  - Maintains message ID for in-place update instead of adding new message
+
+### Key Features
+- Skeleton displays immediately when radio traffic is requested
+- Animated pulse effect indicates loading activity
+- Structure matches final AudioPlayer layout for smooth visual transition
+- Loading message text shows "Fetching radio traffic for incident [ID]..."
+- In-place message update preserves chat history order
+- Works for both successful responses and error states
+
+### PRD Items Also Verified as Passing
+- PRD item 11: "Unknown" speaker display - already implemented in TranscriptionDisplay
+- PRD item 12: Visual speaker distinction - already implemented with 6-color palette
+- PRD item 18: Error state display - already implemented with APIErrorDisplay
+- PRD item 20: Multiple recordings - already works with message state management
+- PRD item 21: Semantic HTML for transcription - already implemented with proper roles
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Remaining features: Responsive design (PRD item 19)
+- Word-level highlighting during playback (PRD items 13-14) requires audio-text synchronization
+- Auto-scroll during playback (PRD items 15-16) needs scroll container management
+
+---
+

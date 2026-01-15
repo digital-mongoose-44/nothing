@@ -217,6 +217,22 @@ export function Chat() {
     } else if (isRadioTrafficRequest(content)) {
       // Extract incident ID and fetch from API
       const incidentId = extractIncidentId(content);
+
+      // Create a loading message with skeleton
+      const loadingMessageId = generateId();
+      const loadingMessage: Message = {
+        id: loadingMessageId,
+        role: "assistant",
+        content: `Fetching radio traffic for incident ${incidentId}...`,
+        parsedContent: {
+          text: `Fetching radio traffic for incident ${incidentId}...`,
+          uiElements: [],
+          errors: [],
+          isLoading: true,
+        },
+      };
+      setMessages((prev) => [...prev, loadingMessage]);
+
       const result = await fetchRadioTraffic(incidentId);
 
       if (result.success && result.data) {
@@ -233,6 +249,17 @@ export function Chat() {
           apiError,
         };
       }
+
+      // Update the loading message with actual content
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.id === loadingMessageId
+            ? { ...msg, content: responseContent, parsedContent }
+            : msg
+        )
+      );
+      setIsLoading(false);
+      return;
     } else {
       responseContent =
         "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'. To test API errors, try incident 999 (not found) or incident error.";

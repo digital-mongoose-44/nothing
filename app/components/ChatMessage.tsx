@@ -1,5 +1,6 @@
 import type { ParsedContent, RadioUIElement, ParseError, APIError } from "../types/ui-elements";
 import { AudioPlayer } from "./AudioPlayer";
+import { AudioPlayerSkeleton } from "./AudioPlayerSkeleton";
 
 export interface Message {
   id: string;
@@ -175,6 +176,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
   // Get API error if present
   const apiError = parsedContent?.apiError;
 
+  // Check if loading
+  const isLoading = parsedContent?.isLoading ?? false;
+
   // Use parsed text if available, otherwise fall back to raw content
   const displayText = parsedContent?.text ?? message.content;
 
@@ -193,7 +197,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {displayText && (
           <p className="whitespace-pre-wrap text-base">{displayText}</p>
         )}
-        {radioElements.map((element, index) => (
+        {isLoading && <AudioPlayerSkeleton />}
+        {!isLoading && radioElements.map((element, index) => (
           <AudioPlayer key={index} payload={element.payload} />
         ))}
         {parseErrors.map((error, index) => (
