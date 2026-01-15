@@ -410,3 +410,48 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Segment Highlighting During Playback
+
+### Features Implemented
+- "As a user, I want the current word to be highlighted during playback so that I can follow along" (PRD item 13)
+- "As a user, I want the highlight to update when I seek to a different position so that synchronization is maintained" (PRD item 14)
+
+### Implementation Summary
+- Updated `app/components/TranscriptionDisplay.tsx`:
+  - Added `currentTime` optional prop to receive current playback position
+  - Added `isSegmentActive()` helper function to determine if a segment contains the current time
+  - Segments are highlighted when `currentTime >= startTime && currentTime < endTime`
+  - Active segments receive visual enhancements: ring highlight, subtle scale, bold text
+  - Added "Now Playing" animated badge on active segment
+  - Added `aria-current="true"` attribute for accessibility
+- Updated `app/components/AudioPlayer.tsx`:
+  - Passed `currentTime` state to TranscriptionDisplay component
+
+### Key Features
+- Real-time segment highlighting based on audio playback position
+- Visual indicators for active segment:
+  - Blue ring (ring-2 ring-blue-500) with ring-offset for depth
+  - Subtle scale transform (scale-[1.01]) for emphasis
+  - Bold text for transcription content
+  - "Now Playing" badge with pulse animation
+- Smooth transitions using CSS (transition-all duration-200)
+- Highlight updates immediately when user seeks to new position
+- Synchronization maintained between audio and transcription throughout playback
+
+### Accessibility
+- `aria-current="true"` attribute on active segment for screen readers
+- "Now Playing" badge provides visual confirmation of current playback position
+- Enhanced text contrast on active segment (zinc-900/zinc-100)
+- Maintains existing speaker color coding during highlight
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Auto-scroll during playback (PRD items 15-16) is the next logical feature
+- Responsive design (PRD item 19) remains to be implemented
+- Consider adding smooth scroll-into-view for active segment
+
+---
+

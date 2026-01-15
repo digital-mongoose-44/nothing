@@ -280,7 +280,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
       </div>
 
       {/* Transcription */}
-      <TranscriptionDisplay segments={payload.transcription} />
+      <TranscriptionDisplay segments={payload.transcription} currentTime={currentTime} />
     </div>
   );
 }

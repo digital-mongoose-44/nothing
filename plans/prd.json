@@ -139,7 +139,7 @@
       "Verify that the current word or phrase is highlighted",
       "Verify that the highlight moves smoothly as playback progresses"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
@@ -150,7 +150,7 @@
       "Verify that the transcription highlight immediately jumps to the correct word/phrase",
       "Verify that playback and highlight remain synchronized"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

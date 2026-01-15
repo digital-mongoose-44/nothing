@@ -4,6 +4,7 @@ import type { TranscriptionSegment } from "../types/ui-elements";
 
 interface TranscriptionDisplayProps {
   segments: TranscriptionSegment[];
+  currentTime?: number;
 }
 
 /**
@@ -59,10 +60,19 @@ function formatTime(seconds: number): string {
 }
 
 /**
+ * Determines if a segment is currently active based on playback time.
+ */
+function isSegmentActive(segment: TranscriptionSegment, currentTime: number | undefined): boolean {
+  if (currentTime === undefined) return false;
+  return currentTime >= segment.startTime && currentTime < segment.endTime;
+}
+
+/**
  * Displays transcription segments with speaker callsigns.
  * Each speaker is color-coded for easy identification.
+ * Active segment is highlighted during playback.
  */
-export function TranscriptionDisplay({ segments }: TranscriptionDisplayProps) {
+export function TranscriptionDisplay({ segments, currentTime }: TranscriptionDisplayProps) {
   // Build speaker color map to ensure consistent colors
   const speakerMap = new Map<string, number>();
 
@@ -96,12 +106,18 @@ export function TranscriptionDisplay({ segments }: TranscriptionDisplayProps) {
         {segments.map((segment, index) => {
           const speakerName = segment.speaker ?? "Unknown";
           const colors = getSpeakerColor(segment.speaker, speakerMap);
+          const isActive = isSegmentActive(segment, currentTime);
 
           return (
             <div
               key={`${segment.startTime}-${index}`}
-              className={`rounded-md border p-2 ${colors.border} ${colors.bg}`}
+              className={`rounded-md border p-2 transition-all duration-200 ${colors.border} ${colors.bg} ${
+                isActive
+                  ? "ring-2 ring-blue-500 ring-offset-1 dark:ring-offset-zinc-800 scale-[1.01]"
+                  : ""
+              }`}
               role="listitem"
+              aria-current={isActive ? "true" : undefined}
             >
               <div className="flex items-center gap-2 mb-1">
                 <span
@@ -113,8 +129,13 @@ export function TranscriptionDisplay({ segments }: TranscriptionDisplayProps) {
                 <span className="text-xs text-zinc-500 dark:text-zinc-400">
                   {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
                 </span>
+                {isActive && (
+                  <span className="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full animate-pulse">
+                    Now Playing
+                  </span>
+                )}
               </div>
-              <p className="text-sm text-zinc-800 dark:text-zinc-200">
+              <p className={`text-sm ${isActive ? "font-medium text-zinc-900 dark:text-zinc-100" : "text-zinc-800 dark:text-zinc-200"}`}>
                 {segment.text}
               </p>
             </div>
