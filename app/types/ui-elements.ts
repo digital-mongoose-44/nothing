@@ -27,9 +27,15 @@ export interface RadioUIElement {
 
 export type UIElement = RadioUIElement;
 
+export interface ParseError {
+  message: string;
+  rawContent: string;
+}
+
 export interface ParsedContent {
   text: string;
   uiElements: UIElement[];
+  errors: ParseError[];
 }
 
 /**
@@ -47,6 +53,7 @@ const UI_ELEMENT_PATTERN = /```ui-element\s*([\s\S]*?)```/g;
  */
 export function parseUIElements(content: string): ParsedContent {
   const uiElements: UIElement[] = [];
+  const errors: ParseError[] = [];
   let text = content;
 
   // Find all UI element blocks
@@ -63,14 +70,89 @@ export function parseUIElements(content: string): ParsedContent {
         // Remove the UI element block from the text content
         text = text.replace(match[0], "").trim();
       } else {
+        // Track validation error
+        const errorMessage = getValidationErrorMessage(parsed);
+        errors.push({
+          message: errorMessage,
+          rawContent: jsonString.slice(0, 100) + (jsonString.length > 100 ? "..." : ""),
+        });
         console.error("Invalid UI element structure:", parsed);
+        // Still remove the malformed block from text
+        text = text.replace(match[0], "").trim();
       }
     } catch (error) {
+      // Track JSON parse error
+      const errorMessage = error instanceof Error ? error.message : "Invalid JSON";
+      errors.push({
+        message: `Failed to parse: ${errorMessage}`,
+        rawContent: jsonString.slice(0, 100) + (jsonString.length > 100 ? "..." : ""),
+      });
       console.error("Failed to parse UI element JSON:", error);
+      // Still remove the malformed block from text
+      text = text.replace(match[0], "").trim();
     }
   }
 
-  return { text, uiElements };
+  return { text, uiElements, errors };
+}
+
+/**
+ * Generates a human-readable error message for invalid UI element structures.
+ */
+function getValidationErrorMessage(parsed: unknown): string {
+  if (typeof parsed !== "object" || parsed === null) {
+    return "UI element must be an object";
+  }
+
+  const element = parsed as Record<string, unknown>;
+
+  if (!element.type) {
+    return "UI element missing required 'type' field";
+  }
+
+  if (element.type === "radio") {
+    return getRadioValidationError(element.payload);
+  }
+
+  return `Unknown UI element type: ${element.type}`;
+}
+
+/**
+ * Generates specific error messages for radio payload validation failures.
+ */
+function getRadioValidationError(payload: unknown): string {
+  if (typeof payload !== "object" || payload === null) {
+    return "Radio element missing required 'payload' field";
+  }
+
+  const p = payload as Record<string, unknown>;
+
+  if (typeof p.audioUrl !== "string") {
+    return "Radio element missing required 'audioUrl' field";
+  }
+
+  if (!Array.isArray(p.transcription)) {
+    return "Radio element missing required 'transcription' array";
+  }
+
+  // Check individual segments
+  for (let i = 0; i < p.transcription.length; i++) {
+    const segment = p.transcription[i] as Record<string, unknown>;
+    if (typeof segment !== "object" || segment === null) {
+      return `Transcription segment ${i} is not an object`;
+    }
+    if (typeof segment.text !== "string") {
+      return `Transcription segment ${i} missing required 'text' field`;
+    }
+    if (typeof segment.startTime !== "number") {
+      return `Transcription segment ${i} missing required 'startTime' field`;
+    }
+    if (typeof segment.endTime !== "number") {
+      return `Transcription segment ${i} missing required 'endTime' field`;
+    }
+  }
+
+  return "Radio element payload validation failed";
 }
 
 /**

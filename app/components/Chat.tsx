@@ -19,6 +19,74 @@ function isRadioTrafficRequest(message: string): boolean {
 }
 
 /**
+ * Checks if the message is requesting malformed test data.
+ * Used to test error handling for the PRD requirement.
+ */
+function isMalformedTestRequest(message: string): boolean {
+  const lower = message.toLowerCase();
+  return lower.includes("test malformed") || lower.includes("test error");
+}
+
+/**
+ * Generates a mock response with malformed UI element data for testing.
+ * This simulates various error cases that can occur with LLM responses.
+ */
+function getMalformedResponse(testType: string): string {
+  if (testType === "json") {
+    // Invalid JSON syntax
+    return `Here is the data you requested:
+
+\`\`\`ui-element
+{ "type": "radio", "payload": { invalid json here }
+\`\`\``;
+  }
+
+  if (testType === "missing-field") {
+    // Missing required audioUrl field
+    return `Here is the data you requested:
+
+\`\`\`ui-element
+{
+  "type": "radio",
+  "payload": {
+    "transcription": [
+      { "speaker": "Test", "text": "Hello", "startTime": 0, "endTime": 1 }
+    ]
+  }
+}
+\`\`\``;
+  }
+
+  if (testType === "invalid-segment") {
+    // Invalid transcription segment missing required fields
+    return `Here is the data you requested:
+
+\`\`\`ui-element
+{
+  "type": "radio",
+  "payload": {
+    "audioUrl": "https://example.com/test.mp3",
+    "transcription": [
+      { "speaker": "Test", "text": "Valid" },
+      { "invalid": "segment" }
+    ]
+  }
+}
+\`\`\``;
+  }
+
+  // Default: unknown type
+  return `Here is the data you requested:
+
+\`\`\`ui-element
+{
+  "type": "unknown-widget",
+  "payload": { "data": "test" }
+}
+\`\`\``;
+}
+
+/**
  * Mock LLM response containing a radio UI element.
  * In production, this would come from the actual LLM backend.
  */
@@ -94,14 +162,26 @@ export function Chat() {
     setTimeout(() => {
       let responseContent: string;
 
-      if (isRadioTrafficRequest(content)) {
+      if (isMalformedTestRequest(content)) {
+        // Determine which type of malformed data to return
+        const lower = content.toLowerCase();
+        let testType = "unknown";
+        if (lower.includes("json")) {
+          testType = "json";
+        } else if (lower.includes("missing")) {
+          testType = "missing-field";
+        } else if (lower.includes("segment")) {
+          testType = "invalid-segment";
+        }
+        responseContent = getMalformedResponse(testType);
+      } else if (isRadioTrafficRequest(content)) {
         // Extract incident ID from the request (if present)
         const incidentMatch = content.match(/incident\s*(\d+)/i);
         const incidentId = incidentMatch?.[1] ?? "123";
         responseContent = getMockRadioResponse(incidentId);
       } else {
         responseContent =
-          "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'";
+          "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'.";
       }
 
       // Parse the response to extract UI elements

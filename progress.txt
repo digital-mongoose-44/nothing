@@ -72,3 +72,50 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Graceful Handling of Malformed UI Element Data
+
+### Feature Implemented
+"As a user, I want malformed UI element data to be handled gracefully so that the application does not crash"
+
+### Implementation Summary
+- Updated `app/types/ui-elements.ts`:
+  - Added `ParseError` interface for structured error tracking
+  - Extended `ParsedContent` interface to include `errors` array
+  - Modified `parseUIElements()` to capture and return parsing errors
+  - Added `getValidationErrorMessage()` for human-readable validation errors
+  - Added `getRadioValidationError()` for specific radio payload error messages
+  - Errors are now tracked with message and truncated raw content for debugging
+- Updated `ChatMessage.tsx`:
+  - Added `UIElementError` component with amber/warning styling
+  - Displays error message with expandable raw data details
+  - Uses `role="alert"` for accessibility
+  - Integrated error display into message rendering
+- Updated `Chat.tsx`:
+  - Added `isMalformedTestRequest()` to detect test error commands
+  - Added `getMalformedResponse()` with multiple test cases:
+    - Invalid JSON syntax
+    - Missing required fields (audioUrl)
+    - Invalid transcription segments
+    - Unknown UI element types
+  - Updated default message to explain test commands
+
+### Key Features
+- Structured error tracking with descriptive messages
+- Visual error display with warning icon and amber styling
+- Expandable "Show raw data" section for debugging
+- Test commands: "test malformed json", "test malformed missing field", "test malformed segment"
+- Continues parsing remaining valid elements even when some fail
+- Malformed blocks are removed from text display to prevent clutter
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Backend API integration for fetching radio traffic data (PRD item 4)
+- Consider adding retry mechanism for transient API errors
+- Loading states will need skeleton components for better UX
+- Audio player component remains the major UI piece to implement
+
+---
+

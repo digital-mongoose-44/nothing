@@ -30,7 +30,7 @@
       "Verify that the chat interface remains functional",
       "Verify that an appropriate error message or fallback is displayed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",
