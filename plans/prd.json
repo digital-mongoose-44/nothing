@@ -19,7 +19,7 @@
       "Verify that the response containing a UI element with type 'radio' is correctly identified",
       "Verify that the audio URL, transcription segments, and metadata are extracted from the payload"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

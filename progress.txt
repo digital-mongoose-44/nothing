@@ -33,3 +33,42 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: UI Element Detection for Radio Traffic Responses
+
+### Feature Implemented
+"As a user, I want the system to detect UI elements with type 'radio' in LLM responses so that the appropriate playback component is rendered"
+
+### Implementation Summary
+- Created `app/types/ui-elements.ts`: Type definitions and parser for UI elements
+  - `TranscriptionSegment`, `RadioUIElementPayload`, `RadioUIElement` types
+  - `parseUIElements()` function to extract UI elements from LLM response strings
+  - Validation functions for type-safe parsing (`isValidUIElement`, `isValidRadioPayload`)
+  - Helper functions `hasRadioElement()` and `getRadioElements()`
+- Updated `ChatMessage.tsx`:
+  - Extended `Message` interface with optional `parsedContent` field
+  - Added `RadioTrafficPlaceholder` component to display radio element metadata
+  - Renders segment count, speaker count, incident ID, and duration
+- Updated `Chat.tsx`:
+  - Integrated `parseUIElements()` into message handling
+  - Added `getMockRadioResponse()` to generate test responses with radio UI elements
+  - Extracts incident ID from user request for realistic mock data
+
+### Key Features
+- UI element format: Fenced code blocks with `ui-element` language identifier
+- Type-safe parsing with comprehensive validation
+- Graceful handling of malformed data (logs errors, doesn't crash)
+- Radio element placeholder shows metadata while audio player is pending
+- Mock response includes 4 transcription segments with different speakers
+
+### Verification Results
+- `bun run build`: Success - TypeScript compilation passed, static pages generated
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: Graceful handling of malformed UI element data (PRD item 3)
+- The current implementation already logs errors for invalid data
+- Need to add visible error/fallback in UI when parsing fails
+- Audio player component needed after error handling is complete
+
+---
+

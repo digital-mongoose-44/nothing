@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage, type Message } from "./ChatMessage";
+import { parseUIElements } from "../types/ui-elements";
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -15,6 +16,56 @@ function isRadioTrafficRequest(message: string): boolean {
     lower.includes("radio recording") ||
     (lower.includes("give me") && lower.includes("radio"))
   );
+}
+
+/**
+ * Mock LLM response containing a radio UI element.
+ * In production, this would come from the actual LLM backend.
+ */
+function getMockRadioResponse(incidentId: string): string {
+  const uiElement = {
+    type: "radio",
+    payload: {
+      audioUrl: "https://example.com/audio/incident-" + incidentId + ".mp3",
+      transcription: [
+        {
+          speaker: "Dispatch",
+          text: "Unit 42, respond to incident " + incidentId + ", structure fire reported.",
+          startTime: 0,
+          endTime: 4.5,
+        },
+        {
+          speaker: "Unit 42",
+          text: "Copy dispatch, Unit 42 responding.",
+          startTime: 5.0,
+          endTime: 7.2,
+        },
+        {
+          speaker: "Unit 42",
+          text: "On scene, smoke visible from second floor.",
+          startTime: 12.0,
+          endTime: 15.3,
+        },
+        {
+          speaker: null,
+          text: "Requesting additional units.",
+          startTime: 16.0,
+          endTime: 18.0,
+        },
+      ],
+      metadata: {
+        incidentId: incidentId,
+        duration: 18.0,
+        recordedAt: new Date().toISOString(),
+      },
+    },
+  };
+
+  return `Here is the radio traffic for incident ${incidentId}:
+
+\`\`\`ui-element
+${JSON.stringify(uiElement, null, 2)}
+\`\`\``;
 }
 
 export function Chat() {
@@ -44,17 +95,23 @@ export function Chat() {
       let responseContent: string;
 
       if (isRadioTrafficRequest(content)) {
-        responseContent =
-          "I recognized your request for radio traffic. The radio playback feature will be implemented in upcoming iterations.";
+        // Extract incident ID from the request (if present)
+        const incidentMatch = content.match(/incident\s*(\d+)/i);
+        const incidentId = incidentMatch?.[1] ?? "123";
+        responseContent = getMockRadioResponse(incidentId);
       } else {
         responseContent =
           "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'";
       }
 
+      // Parse the response to extract UI elements
+      const parsedContent = parseUIElements(responseContent);
+
       const assistantMessage: Message = {
         id: generateId(),
         role: "assistant",
         content: responseContent,
+        parsedContent,
       };
       setMessages((prev) => [...prev, assistantMessage]);
       setIsLoading(false);
