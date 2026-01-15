@@ -41,7 +41,7 @@
       "Verify that a loading state is displayed while fetching",
       "Verify that the response data is correctly received and processed"
     ],
-    "passes": false
+    "passes": true
   },
   {
     "category": "functional",

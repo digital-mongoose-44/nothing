@@ -119,3 +119,42 @@ Notes for the next iteration of Ralph.
 
 ---
 
+## 2026-01-15: Backend API Integration for Radio Traffic Data
+
+### Feature Implemented
+"As a user, I want the system to fetch radio traffic data from the backend API so that I can listen to recordings"
+
+### Implementation Summary
+- Created `app/api/radio-traffic/route.ts`: Next.js API route for radio traffic requests
+  - `POST` endpoint accepting `incidentId` parameter
+  - `RadioTrafficRequest`, `RadioTrafficResponse`, `RadioTrafficErrorResponse` types
+  - `generateMockRadioTraffic()` function for simulated data with 6 transcription segments
+  - Simulated network latency (800ms) for realistic loading states
+  - Error responses for specific incident IDs (999 = not found, "error" = server error)
+- Updated `Chat.tsx`:
+  - Added `fetchRadioTraffic()` async function to call the API endpoint
+  - Added `formatRadioResponse()` to convert API response to UI element format
+  - Added `extractIncidentId()` helper function
+  - Changed `handleSend()` to async function with proper API integration
+  - Updated default help message to include API error test instructions
+
+### Key Features
+- Real HTTP API calls to `/api/radio-traffic` endpoint
+- Loading state displayed during API fetch (existing animated dots)
+- Error handling for network failures and API error responses
+- Test commands for API errors: incident 999 (not found), incident "error" (server error)
+- API response includes additional transcription segments (6 vs previous 4)
+- Type-safe request/response with exported TypeScript interfaces
+
+### Verification Results
+- `bun run build`: Success - compiled successfully, API route registered as dynamic
+- `bun run lint`: Success - no ESLint errors
+
+### Notes for Next Iteration
+- Next feature: API error handling display (PRD item 5) - partially implemented
+- Audio player component is the next major UI piece to implement
+- Consider adding more realistic mock data with varied incident types
+- Loading skeleton for the radio traffic card would improve UX
+
+---
+

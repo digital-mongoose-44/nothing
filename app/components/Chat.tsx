@@ -3,7 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ChatInput } from "./ChatInput";
 import { ChatMessage, type Message } from "./ChatMessage";
-import { parseUIElements } from "../types/ui-elements";
+import { parseUIElements, type ParsedContent } from "../types/ui-elements";
+import type { RadioTrafficResponse, RadioTrafficErrorResponse } from "../api/radio-traffic/route";
 
 function generateId(): string {
   return Math.random().toString(36).substring(2, 9);
@@ -16,6 +17,14 @@ function isRadioTrafficRequest(message: string): boolean {
     lower.includes("radio recording") ||
     (lower.includes("give me") && lower.includes("radio"))
   );
+}
+
+/**
+ * Extracts incident ID from a radio traffic request message.
+ */
+function extractIncidentId(message: string): string {
+  const incidentMatch = message.match(/incident\s*(\d+)/i);
+  return incidentMatch?.[1] ?? "123";
 }
 
 /**
@@ -87,49 +96,50 @@ function getMalformedResponse(testType: string): string {
 }
 
 /**
- * Mock LLM response containing a radio UI element.
- * In production, this would come from the actual LLM backend.
+ * Fetches radio traffic data from the backend API.
  */
-function getMockRadioResponse(incidentId: string): string {
-  const uiElement = {
-    type: "radio",
-    payload: {
-      audioUrl: "https://example.com/audio/incident-" + incidentId + ".mp3",
-      transcription: [
-        {
-          speaker: "Dispatch",
-          text: "Unit 42, respond to incident " + incidentId + ", structure fire reported.",
-          startTime: 0,
-          endTime: 4.5,
-        },
-        {
-          speaker: "Unit 42",
-          text: "Copy dispatch, Unit 42 responding.",
-          startTime: 5.0,
-          endTime: 7.2,
-        },
-        {
-          speaker: "Unit 42",
-          text: "On scene, smoke visible from second floor.",
-          startTime: 12.0,
-          endTime: 15.3,
-        },
-        {
-          speaker: null,
-          text: "Requesting additional units.",
-          startTime: 16.0,
-          endTime: 18.0,
-        },
-      ],
-      metadata: {
-        incidentId: incidentId,
-        duration: 18.0,
-        recordedAt: new Date().toISOString(),
+async function fetchRadioTraffic(incidentId: string): Promise<{
+  success: boolean;
+  data?: RadioTrafficResponse;
+  error?: string;
+}> {
+  try {
+    const response = await fetch("/api/radio-traffic", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    },
+      body: JSON.stringify({ incidentId }),
+    });
+
+    if (!response.ok) {
+      const errorData = (await response.json()) as RadioTrafficErrorResponse;
+      return {
+        success: false,
+        error: errorData.error || `Request failed with status ${response.status}`,
+      };
+    }
+
+    const data = (await response.json()) as RadioTrafficResponse;
+    return { success: true, data };
+  } catch (err) {
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : "Failed to fetch radio traffic",
+    };
+  }
+}
+
+/**
+ * Converts API response to UI element format for parsing.
+ */
+function formatRadioResponse(response: RadioTrafficResponse): string {
+  const uiElement = {
+    type: response.type,
+    payload: response.payload,
   };
 
-  return `Here is the radio traffic for incident ${incidentId}:
+  return `${response.textResponse}
 
 \`\`\`ui-element
 ${JSON.stringify(uiElement, null, 2)}
@@ -149,7 +159,7 @@ export function Chat() {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = (content: string) => {
+  const handleSend = async (content: string) => {
     const userMessage: Message = {
       id: generateId(),
       role: "user",
@@ -158,44 +168,57 @@ export function Chat() {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulate async response
-    setTimeout(() => {
-      let responseContent: string;
+    let responseContent: string;
+    let parsedContent: ParsedContent;
 
-      if (isMalformedTestRequest(content)) {
-        // Determine which type of malformed data to return
-        const lower = content.toLowerCase();
-        let testType = "unknown";
-        if (lower.includes("json")) {
-          testType = "json";
-        } else if (lower.includes("missing")) {
-          testType = "missing-field";
-        } else if (lower.includes("segment")) {
-          testType = "invalid-segment";
-        }
-        responseContent = getMalformedResponse(testType);
-      } else if (isRadioTrafficRequest(content)) {
-        // Extract incident ID from the request (if present)
-        const incidentMatch = content.match(/incident\s*(\d+)/i);
-        const incidentId = incidentMatch?.[1] ?? "123";
-        responseContent = getMockRadioResponse(incidentId);
-      } else {
-        responseContent =
-          "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'.";
+    if (isMalformedTestRequest(content)) {
+      // Determine which type of malformed data to return
+      const lower = content.toLowerCase();
+      let testType = "unknown";
+      if (lower.includes("json")) {
+        testType = "json";
+      } else if (lower.includes("missing")) {
+        testType = "missing-field";
+      } else if (lower.includes("segment")) {
+        testType = "invalid-segment";
       }
+      responseContent = getMalformedResponse(testType);
+      parsedContent = parseUIElements(responseContent);
+    } else if (isRadioTrafficRequest(content)) {
+      // Extract incident ID and fetch from API
+      const incidentId = extractIncidentId(content);
+      const result = await fetchRadioTraffic(incidentId);
 
-      // Parse the response to extract UI elements
-      const parsedContent = parseUIElements(responseContent);
-
-      const assistantMessage: Message = {
-        id: generateId(),
-        role: "assistant",
-        content: responseContent,
-        parsedContent,
+      if (result.success && result.data) {
+        responseContent = formatRadioResponse(result.data);
+        parsedContent = parseUIElements(responseContent);
+      } else {
+        // API error - display error message
+        responseContent = `Unable to fetch radio traffic for incident ${incidentId}: ${result.error}`;
+        parsedContent = {
+          text: responseContent,
+          uiElements: [],
+          errors: [],
+        };
+      }
+    } else {
+      responseContent =
+        "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'. To test API errors, try incident 999 (not found) or incident error.";
+      parsedContent = {
+        text: responseContent,
+        uiElements: [],
+        errors: [],
       };
-      setMessages((prev) => [...prev, assistantMessage]);
-      setIsLoading(false);
-    }, 500);
+    }
+
+    const assistantMessage: Message = {
+      id: generateId(),
+      role: "assistant",
+      content: responseContent,
+      parsedContent,
+    };
+    setMessages((prev) => [...prev, assistantMessage]);
+    setIsLoading(false);
   };
 
   return (
