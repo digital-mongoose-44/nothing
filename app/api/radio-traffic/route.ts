@@ -80,7 +80,7 @@ function generateMockRadioTraffic(incidentId: string): RadioTrafficResponse {
   return {
     type: "radio",
     payload: {
-      audioUrl: `https://example.com/audio/incident-${incidentId}.mp3`,
+      audioUrl: `/sample-15s.mp3`,
       transcription,
       metadata: {
         incidentId,
