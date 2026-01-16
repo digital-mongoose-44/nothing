@@ -1,11 +1,40 @@
+/**
+ * ChatMessage.tsx - Message Rendering Component
+ *
+ * Renders individual chat messages with support for rich UI elements.
+ * This component is the bridge between raw message content and the
+ * specialized display components (AudioPlayer, error displays, etc.)
+ *
+ * Rendering Flow:
+ * ┌─────────────────┐
+ * │ Message         │
+ * │ ├─ text         │──▶ Plain text display
+ * │ ├─ uiElements[] │──▶ AudioPlayer (for type="radio")
+ * │ ├─ errors[]     │──▶ UIElementError (parsing failures)
+ * │ ├─ apiError     │──▶ APIErrorDisplay (API failures)
+ * │ └─ isLoading    │──▶ AudioPlayerSkeleton
+ * └─────────────────┘
+ */
+import { memo } from "react";
 import type { ParsedContent, RadioUIElement, ParseError, APIError } from "../types/ui-elements";
 import { AudioPlayer } from "./AudioPlayer";
 import { AudioPlayerSkeleton } from "./AudioPlayerSkeleton";
 
+// ============================================================================
+// TYPES
+// ============================================================================
+
+/**
+ * Represents a single chat message.
+ */
 export interface Message {
+  /** Unique identifier for the message */
   id: string;
+  /** Who sent the message */
   role: "user" | "assistant";
+  /** Raw message content (may include ui-element blocks) */
   content: string;
+  /** Parsed content with extracted UI elements and errors */
   parsedContent?: ParsedContent;
 }
 
@@ -13,9 +42,22 @@ interface ChatMessageProps {
   message: Message;
 }
 
+// ============================================================================
+// ERROR DISPLAY COMPONENTS
+// ============================================================================
+
 /**
- * Component to display UI element parsing errors.
- * Shows a user-friendly error message when malformed data is encountered.
+ * Displays UI element parsing errors (malformed JSON, missing fields, etc.)
+ *
+ * Shown when:
+ * - JSON syntax is invalid
+ * - Required fields are missing (audioUrl, transcription)
+ * - Unknown UI element type encountered
+ *
+ * Features:
+ * - Warning icon with amber/yellow styling
+ * - Error message explaining the issue
+ * - Expandable "Show raw data" section for debugging
  */
 function UIElementError({ error }: { error: ParseError }) {
   return (
@@ -64,10 +106,21 @@ function UIElementError({ error }: { error: ParseError }) {
 }
 
 /**
- * Component to display API errors when fetching radio traffic fails.
- * Shows a user-friendly error message with actionable suggestions.
+ * Displays API errors when fetching radio traffic fails.
+ *
+ * Error types with corresponding icons:
+ * - not_found: Search icon (incident doesn't exist)
+ * - server_error: Exclamation icon (backend failure)
+ * - network_error: Disconnected icon (connectivity issues)
+ *
+ * Features:
+ * - Red error styling for high visibility
+ * - Contextual icon based on error type
+ * - Helpful suggestion for user action
+ * - Displays incident ID when available
  */
 function APIErrorDisplay({ error }: { error: APIError }) {
+  /** Returns the appropriate SVG path for the error type */
   const getErrorIcon = () => {
     switch (error.type) {
       case "not_found":
@@ -100,6 +153,7 @@ function APIErrorDisplay({ error }: { error: APIError }) {
     }
   };
 
+  /** Returns user-friendly title for the error type */
   const getTitle = () => {
     switch (error.type) {
       case "not_found":
@@ -111,6 +165,7 @@ function APIErrorDisplay({ error }: { error: APIError }) {
     }
   };
 
+  /** Returns actionable suggestion for resolving the error */
   const getSuggestion = () => {
     switch (error.type) {
       case "not_found":
@@ -160,27 +215,50 @@ function APIErrorDisplay({ error }: { error: APIError }) {
   );
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+/**
+ * Renders a single chat message with all its content.
+ * Wrapped in React.memo to prevent unnecessary re-renders in the message list.
+ *
+ * Handles multiple content types:
+ * - Plain text (always shown if present)
+ * - Loading skeleton (when fetching radio data)
+ * - Audio players (for radio UI elements)
+ * - Parse errors (for malformed UI elements)
+ * - API errors (for failed API requests)
+ *
+ * Styling:
+ * - User messages: right-aligned, dark background
+ * - Assistant messages: left-aligned, light background
+ */
+export const ChatMessage = memo(function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
   const { parsedContent } = message;
 
-  // Get radio elements if present
+  // ─── Extract content from parsed message ───
+
+  // Filter for radio-type UI elements (audio players)
   const radioElements =
     parsedContent?.uiElements.filter(
       (el): el is RadioUIElement => el.type === "radio"
     ) ?? [];
 
-  // Get parsing errors if present
+  // Collect any parsing errors (malformed JSON, missing fields)
   const parseErrors = parsedContent?.errors ?? [];
 
-  // Get API error if present
+  // Get API error if the fetch failed
   const apiError = parsedContent?.apiError;
 
-  // Check if loading
+  // Check if still loading (shows skeleton)
   const isLoading = parsedContent?.isLoading ?? false;
 
-  // Use parsed text if available, otherwise fall back to raw content
+  // Use cleaned text (UI element blocks removed) or fall back to raw content
   const displayText = parsedContent?.text ?? message.content;
+
+  // ─── Render ───
 
   return (
     <div
@@ -194,18 +272,30 @@ export function ChatMessage({ message }: ChatMessageProps) {
             : "bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
         }`}
       >
+        {/* Text content - always shown if present */}
         {displayText && (
           <p className="whitespace-pre-wrap text-base">{displayText}</p>
         )}
+
+        {/* Loading skeleton - shown while fetching radio data */}
         {isLoading && <AudioPlayerSkeleton />}
+
+        {/* Audio players - rendered for each radio UI element */}
         {!isLoading && radioElements.map((element, index) => (
           <AudioPlayer key={index} payload={element.payload} />
         ))}
+
+        {/* Parse errors - shown for malformed UI elements */}
         {parseErrors.map((error, index) => (
           <UIElementError key={`error-${index}`} error={error} />
         ))}
+
+        {/* API errors - shown when radio traffic fetch fails */}
         {apiError && <APIErrorDisplay error={apiError} />}
       </div>
     </div>
   );
-}
+});
+
+// Set display name for debugging
+ChatMessage.displayName = "ChatMessage";

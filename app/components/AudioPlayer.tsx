@@ -1,43 +1,84 @@
+/**
+ * AudioPlayer.tsx - Radio Traffic Audio Player Component
+ *
+ * A full-featured audio player for radio traffic recordings with:
+ * - Play/pause controls with keyboard accessibility (Space/Enter)
+ * - Interactive seek bar for navigation
+ * - Time display (current position / total duration)
+ * - Metadata display (segments, speakers, incident ID)
+ * - Synchronized transcription display with segment highlighting
+ *
+ * Architecture:
+ * ┌───────────────────────────────────────────────────────────┐
+ * │ AudioPlayer                                               │
+ * │ ┌─────────────────┐ ┌───────────────────────────────────┐│
+ * │ │ Play/Pause      │ │ Seek Bar + Time                   ││
+ * │ │ Button          │ │ [========|--------] 1:23 / 3:45   ││
+ * │ └─────────────────┘ └───────────────────────────────────┘│
+ * │ ┌─────────────────────────────────────────────────────┐  │
+ * │ │ Metadata: Segments: 6 | Speakers: 3 | Incident: 123│  │
+ * │ └─────────────────────────────────────────────────────┘  │
+ * │ ┌─────────────────────────────────────────────────────┐  │
+ * │ │ TranscriptionDisplay (synchronized segments)        │  │
+ * │ └─────────────────────────────────────────────────────┘  │
+ * └───────────────────────────────────────────────────────────┘
+ */
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, memo } from "react";
 import type { RadioUIElementPayload } from "../types/ui-elements";
 import { TranscriptionDisplay } from "./TranscriptionDisplay";
+import { formatTime } from "../utils/format";
+
+// ============================================================================
+// TYPES
+// ============================================================================
 
 interface AudioPlayerProps {
+  /** Radio traffic data including audio URL, transcription, and metadata */
   payload: RadioUIElementPayload;
 }
 
-/**
- * Formats seconds into mm:ss format.
- * @param seconds - Time in seconds
- * @returns Formatted time string (e.g., "1:23" or "0:05")
- */
-function formatTime(seconds: number): string {
-  if (!isFinite(seconds) || seconds < 0) {
-    return "0:00";
-  }
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${mins}:${secs.toString().padStart(2, "0")}`;
-}
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 /**
  * Audio player component for radio traffic playback.
- * Provides play/pause controls for audio recordings.
+ * Wrapped in React.memo to prevent unnecessary re-renders when parent updates.
+ *
+ * State Management:
+ * - isPlaying: Sync'd with HTML audio element play/pause state
+ * - isLoaded: Whether audio is ready for playback
+ * - currentTime/duration: For seek bar and time display
+ * - error: Error message if audio fails to load/play
+ *
+ * Event Flow:
+ * User clicks play → audio.play() → "play" event → setIsPlaying(true)
+ * User seeks → onChange → audio.currentTime = value → "timeupdate" → setCurrentTime
  */
-export function AudioPlayer({ payload }: AudioPlayerProps) {
+export const AudioPlayer = memo(function AudioPlayer({ payload }: AudioPlayerProps) {
+  // ─── Refs ───
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // ─── State ───
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  // ─── Derived Values ───
+  // Count unique speakers for metadata display
   const speakerCount = new Set(
     payload.transcription.map((s) => s.speaker ?? "Unknown")
   ).size;
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // EVENT HANDLERS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /** Toggles play/pause state of the audio element */
   const handlePlayPause = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -52,24 +93,29 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     }
   }, [isPlaying]);
 
+  /** Called when audio starts playing (sync state with audio element) */
   const handlePlay = useCallback(() => {
     setIsPlaying(true);
   }, []);
 
+  /** Called when audio pauses (sync state with audio element) */
   const handlePause = useCallback(() => {
     setIsPlaying(false);
   }, []);
 
+  /** Called when audio is ready to play */
   const handleCanPlay = useCallback(() => {
     setIsLoaded(true);
     setError(null);
   }, []);
 
+  /** Called when audio fails to load */
   const handleError = useCallback(() => {
     setError("Failed to load audio");
     setIsLoaded(false);
   }, []);
 
+  /** Called periodically during playback to update current time */
   const handleTimeUpdate = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -77,6 +123,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     }
   }, []);
 
+  /** Called when audio metadata loads (used to get duration) */
   const handleLoadedMetadata = useCallback(() => {
     const audio = audioRef.current;
     if (audio) {
@@ -84,6 +131,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     }
   }, []);
 
+  /** Handles seek bar changes - updates audio position */
   const handleSeek = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
     if (audio) {
@@ -93,7 +141,7 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     }
   }, []);
 
-  // Handle keyboard controls for play/pause
+  /** Handles keyboard accessibility - Space/Enter toggles play/pause */
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === " " || event.key === "Enter") {
@@ -104,6 +152,16 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     [handlePlayPause]
   );
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // EFFECTS
+  // ─────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Sets up audio element event listeners.
+   * We use native event listeners instead of React props because:
+   * - More reliable state synchronization
+   * - Better cleanup on unmount
+   */
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -125,11 +183,16 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
     };
   }, [handlePlay, handlePause, handleCanPlay, handleError, handleTimeUpdate, handleLoadedMetadata]);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
+
   return (
     <div className="mt-3 rounded-lg border border-zinc-200 bg-zinc-50 p-3 sm:p-4 dark:border-zinc-700 dark:bg-zinc-900">
-      {/* Header */}
+      {/* ─── Header with icon and title ─── */}
       <div className="mb-3 flex items-center gap-2">
         <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 shrink-0">
+          {/* Microphone icon */}
           <svg
             className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400"
             fill="none"
@@ -148,11 +211,13 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
         <span className="font-medium text-sm sm:text-base">Radio Traffic Recording</span>
       </div>
 
-      {/* Audio element - hidden */}
-      <audio ref={audioRef} src={payload.audioUrl} preload="metadata" />
+      {/* ─── Hidden audio element ─── */}
+      {/* The actual HTML5 audio element - hidden from view, controlled programmatically */}
+      <audio ref={audioRef} src={payload.audioUrl} preload="metadata" aria-hidden="true" />
 
-      {/* Play/Pause Controls */}
+      {/* ─── Player Controls: Play button + Seek bar ─── */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Play/Pause button - circular with icon */}
         <button
           type="button"
           onClick={handlePlayPause}
@@ -185,17 +250,21 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
           )}
         </button>
 
+        {/* Seek bar container - flexes to fill remaining space */}
         <div className="flex-1">
-          {/* Loading or error state */}
+          {/* ─── Conditional content based on loading/error state ─── */}
           {error ? (
+            // Error state - red text
             <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
           ) : !isLoaded ? (
+            // Loading state - gray "Loading audio..." text
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               Loading audio...
             </p>
           ) : (
+            // Ready state - show seek bar and time display
             <div className="flex flex-col gap-1">
-              {/* Seek bar */}
+              {/* Seek bar - HTML range input styled as progress bar */}
               <input
                 type="range"
                 min={0}
@@ -210,11 +279,16 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
                 aria-valuenow={currentTime}
                 aria-valuetext={`${Math.floor(currentTime)} of ${Math.floor(duration)} seconds`}
               />
-              {/* Time display */}
+              {/* Time display - current / duration at ends of seek bar */}
               <div className="flex justify-between text-xs text-zinc-500 dark:text-zinc-400">
                 <span aria-label="Current time">{formatTime(currentTime)}</span>
                 <span aria-label="Total duration">{formatTime(duration)}</span>
               </div>
+
+              {/* ─── Custom seek bar styling ───
+                  Range inputs need custom CSS for cross-browser styling.
+                  This creates a circular blue thumb with a track.
+              */}
               <style>{`
                 .seek-bar::-webkit-slider-thumb {
                   appearance: none;
@@ -256,7 +330,11 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
         </div>
       </div>
 
-      {/* Metadata */}
+      {/* ─── Metadata row ───
+          Shows recording statistics. Responsive:
+          - Mobile: 2-column grid
+          - Desktop: horizontal flex wrap
+      */}
       <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 sm:flex sm:flex-wrap sm:gap-x-4">
         <p>
           <span className="font-medium">Segments:</span>{" "}
@@ -279,8 +357,14 @@ export function AudioPlayer({ payload }: AudioPlayerProps) {
         )}
       </div>
 
-      {/* Transcription */}
+      {/* ─── Transcription display ───
+          Shows all transcription segments with speaker color-coding.
+          currentTime prop enables synchronized highlighting during playback.
+      */}
       <TranscriptionDisplay segments={payload.transcription} currentTime={currentTime} />
     </div>
   );
-}
+});
+
+// Set display name for debugging
+AudioPlayer.displayName = "AudioPlayer";
