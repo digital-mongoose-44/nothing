@@ -21,6 +21,7 @@ import { formatTime } from "../utils/format";
 interface TranscriptionDisplayProps {
   segments: TranscriptionSegment[];
   currentTime?: number;
+  isPlaying?: boolean;
   onSegmentClick?: (time: number) => void;
 }
 
@@ -57,7 +58,7 @@ function isSegmentActive(segment: TranscriptionSegment, currentTime: number | un
   return currentTime >= segment.startTime && currentTime < segment.endTime;
 }
 
-export function TranscriptionDisplay({ segments, currentTime, onSegmentClick }: TranscriptionDisplayProps) {
+export function TranscriptionDisplay({ segments, currentTime, isPlaying, onSegmentClick }: TranscriptionDisplayProps) {
   // Refs
   const segmentRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const containerRef = useRef<HTMLDivElement>(null);
@@ -205,7 +206,7 @@ export function TranscriptionDisplay({ segments, currentTime, onSegmentClick }: 
                   <span className="text-xs text-muted-foreground">
                     {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
                   </span>
-                  {isActive && (
+                  {isActive && isPlaying && (
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}

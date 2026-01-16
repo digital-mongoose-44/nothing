@@ -210,6 +210,7 @@ export const AudioPlayer = memo(function AudioPlayer({ payload }: AudioPlayerPro
         <TranscriptionDisplay
           segments={payload.transcription}
           currentTime={currentTime}
+          isPlaying={isPlaying}
           onSegmentClick={handleSegmentClick}
         />
       </CardContent>

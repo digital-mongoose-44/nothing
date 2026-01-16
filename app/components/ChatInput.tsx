@@ -1,57 +1,61 @@
 /**
- * ChatInput.tsx - Message Input Component
+ * ChatInput.tsx - Multimodal Input Component
  *
- * A controlled textarea input for composing chat messages.
- *
- * Features:
- * - Single-line appearance with textarea (allows future multi-line support)
- * - Enter key to send (Shift+Enter for newline)
- * - Disabled state during message processing
- * - Accessible with proper ARIA labels
+ * A styled input component matching Vercel AI Chatbot design:
+ * - Rounded pill container
+ * - Send button inside (arrow icon)
+ * - Stop button during loading
+ * - Auto-resize textarea
  */
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
-
-// ============================================================================
-// TYPES
-// ============================================================================
+import { useState, useRef, useEffect, type FormEvent, type KeyboardEvent } from "react";
+import { ArrowUp, Square } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   /** Callback fired when user submits a message */
   onSend: (message: string) => void;
+  /** Callback to stop current operation */
+  onStop?: () => void;
   /** Whether the input is disabled (e.g., while loading) */
   disabled?: boolean;
+  /** Whether a response is being generated */
+  isLoading?: boolean;
 }
 
-// ============================================================================
-// COMPONENT
-// ============================================================================
-
-/**
- * Chat input component with send button.
- * Handles form submission via button click or Enter key.
- */
-export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
+export function ChatInput({
+  onSend,
+  onStop,
+  disabled = false,
+  isLoading = false,
+}: ChatInputProps) {
   const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  /**
-   * Handles form submission.
-   * Trims whitespace and clears input after sending.
-   */
+  // Auto-resize textarea
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+    }
+  }, [input]);
+
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     const trimmed = input.trim();
     if (trimmed && !disabled) {
       onSend(trimmed);
       setInput("");
+      // Reset textarea height
+      if (textareaRef.current) {
+        textareaRef.current.style.height = "auto";
+      }
     }
   };
 
-  /**
-   * Handles keyboard events for the textarea.
-   * Enter sends message, Shift+Enter creates newline.
-   */
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -59,29 +63,72 @@ export function ChatInput({ onSend, disabled = false }: ChatInputProps) {
     }
   };
 
-  return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      {/* Message input - textarea for potential multi-line support */}
-      <textarea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-        disabled={disabled}
-        rows={1}
-        className="flex-1 resize-none rounded-lg border border-zinc-300 bg-white px-4 py-3 text-base text-zinc-900 placeholder-zinc-500 focus:border-zinc-500 focus:outline-none disabled:bg-zinc-100 disabled:text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:placeholder-zinc-400 dark:focus:border-zinc-500 dark:disabled:bg-zinc-800"
-        aria-label="Chat message input"
-      />
+  const handleStopClick = () => {
+    onStop?.();
+  };
 
-      {/* Send button - disabled when empty or loading */}
-      <button
-        type="submit"
-        disabled={disabled || !input.trim()}
-        className="rounded-lg bg-zinc-900 px-4 py-3 text-base font-medium text-white transition-colors hover:bg-zinc-700 disabled:bg-zinc-300 disabled:text-zinc-500 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300 dark:disabled:bg-zinc-700 dark:disabled:text-zinc-500"
-        aria-label="Send message"
+  const canSubmit = input.trim().length > 0 && !disabled;
+
+  return (
+    <form onSubmit={handleSubmit} className="relative">
+      <div
+        className={cn(
+          "flex items-end gap-2 rounded-2xl border bg-background p-2 shadow-sm transition-colors",
+          "border-input focus-within:border-ring focus-within:ring-1 focus-within:ring-ring"
+        )}
       >
-        Send
-      </button>
+        {/* Textarea */}
+        <textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Send a message..."
+          disabled={disabled}
+          rows={1}
+          className={cn(
+            "flex-1 resize-none bg-transparent px-2 py-1.5",
+            "text-sm text-foreground placeholder:text-muted-foreground",
+            "focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+            "max-h-[200px] min-h-[44px]"
+          )}
+          aria-label="Chat message input"
+        />
+
+        {/* Submit/Stop button */}
+        {isLoading ? (
+          <Button
+            type="button"
+            size="icon"
+            variant="ghost"
+            onClick={handleStopClick}
+            className="h-8 w-8 shrink-0 rounded-lg bg-foreground text-background hover:bg-foreground/90"
+            aria-label="Stop generating"
+          >
+            <Square className="h-4 w-4 fill-current" />
+          </Button>
+        ) : (
+          <Button
+            type="submit"
+            size="icon"
+            disabled={!canSubmit}
+            className={cn(
+              "h-8 w-8 shrink-0 rounded-lg transition-colors",
+              canSubmit
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "bg-muted text-muted-foreground"
+            )}
+            aria-label="Send message"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+
+      {/* Hint text */}
+      <p className="mt-2 text-center text-xs text-muted-foreground">
+        Press Enter to send, Shift+Enter for new line
+      </p>
     </form>
   );
 }
