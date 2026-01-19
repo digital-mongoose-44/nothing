@@ -20,12 +20,14 @@
  * }
  *
  * Error responses:
+ * - 401: Unauthorized (no valid session)
  * - 400: Missing incident ID or invalid request
  * - 404: Incident not found (test with incident 999)
  * - 500: Server error (test with incident "error")
  */
 import { NextRequest, NextResponse } from "next/server";
 import type { TranscriptionSegment } from "../../types/ui-elements";
+import { verifySession } from "@/lib/dal/verifySession";
 
 // Re-export for consumers of this API module
 export type { TranscriptionSegment };
@@ -184,6 +186,15 @@ function generateMockRadioTraffic(incidentId: string): RadioTrafficResponse {
  */
 export async function POST(request: NextRequest) {
   try {
+    // Verify user session
+    const session = await verifySession();
+    if (!session) {
+      return NextResponse.json<RadioTrafficErrorResponse>(
+        { error: "Unauthorized", code: "UNAUTHORIZED" },
+        { status: 401 }
+      );
+    }
+
     // Parse request body
     const body = (await request.json()) as RadioTrafficRequest;
 
