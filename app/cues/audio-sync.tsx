@@ -2,9 +2,28 @@
 
 import { useEffect, useRef, useState } from 'react';
 
+interface Cue {
+  start: number;
+  end: number;
+  text: string;
+}
+
+interface AudioWithSyncedTextProps {
+  audioSrc: string;
+  vttSrc: string;
+}
+
+// Convert VTT timestamp to seconds
+const timeToSeconds = (time: string): number => {
+  const parts = time.split(':').map(parseFloat);
+  return parts.length === 3
+    ? parts[0] * 3600 + parts[1] * 60 + parts[2]
+    : parts[0] * 60 + parts[1];
+};
+
 // Simple WebVTT parser
-const parseVTT = (vttText) => {
-  const cues = [];
+const parseVTT = (vttText: string): Cue[] => {
+  const cues: Cue[] = [];
   const lines = vttText.split('\n').filter(Boolean);
 
   for (let i = 0; i < lines.length; i++) {
@@ -18,16 +37,8 @@ const parseVTT = (vttText) => {
   return cues;
 };
 
-// Convert VTT timestamp to seconds
-const timeToSeconds = (time) => {
-  const parts = time.split(':').map(parseFloat);
-  return parts.length === 3
-    ? parts[0] * 3600 + parts[1] * 60 + parts[2]
-    : parts[0] * 60 + parts[1];
-};
-
-export default function AudioWithSyncedText({ audioSrc, vttSrc }) {
-  const [cues, setCues] = useState([]);
+export default function AudioWithSyncedText({ audioSrc, vttSrc }: AudioWithSyncedTextProps) {
+  const [cues, setCues] = useState<Cue[]>([]);
   const [currentText, setCurrentText] = useState('');
   const audioRef = useRef<HTMLAudioElement>(null);
 
