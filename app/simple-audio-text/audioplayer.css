@@ -1,0 +1,250 @@
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&display=swap");
+        
+        .audio-player {
+          --bg-primary: #0a0a0b;
+          --bg-secondary: #141416;
+          --bg-tertiary: #1c1c1f;
+          --accent: #6366f1;
+          --accent-glow: rgba(99, 102, 241, 0.4);
+          --text-primary: #fafafa;
+          --text-secondary: #a1a1aa;
+          --text-muted: #52525b;
+
+          font-family: "Outfit", system-ui, sans-serif;
+          background: var(--bg-primary);
+          border: 1px solid var(--bg-tertiary);
+          border-radius: 20px;
+          padding: 28px;
+          width: 100%;
+          max-width: 420px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .audio-player::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .track-info {
+          text-align: center;
+          margin-bottom: 24px;
+        }
+
+        .track-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin: 0 0 4px 0;
+          letter-spacing: -0.02em;
+        }
+
+        .track-artist {
+          font-size: 0.875rem;
+          font-weight: 400;
+          color: var(--text-secondary);
+          margin: 0;
+        }
+
+        .error-message {
+          background: rgba(239, 68, 68, 0.1);
+          border: 1px solid rgba(239, 68, 68, 0.3);
+          color: #fca5a5;
+          padding: 8px 12px;
+          border-radius: 8px;
+          font-size: 0.75rem;
+          margin-bottom: 16px;
+          text-align: center;
+        }
+
+        .progress-container {
+          margin-bottom: 16px;
+        }
+
+        .progress-bar {
+          height: 6px;
+          background: var(--bg-tertiary);
+          border-radius: 3px;
+          cursor: pointer;
+          position: relative;
+          overflow: visible;
+          transition: height 0.15s ease;
+        }
+
+        .progress-bar:hover {
+          height: 8px;
+        }
+
+        .progress-fill {
+          height: 100%;
+          background: linear-gradient(90deg, var(--accent), #818cf8);
+          border-radius: 3px;
+          position: relative;
+          transition: width 0.1s linear;
+        }
+
+        .progress-fill::after {
+          content: "";
+          position: absolute;
+          right: -7px;
+          top: 50%;
+          transform: translateY(-50%) scale(0);
+          width: 14px;
+          height: 14px;
+          background: var(--text-primary);
+          border-radius: 50%;
+          box-shadow: 0 0 10px var(--accent-glow);
+          transition: transform 0.15s ease;
+        }
+
+        .progress-bar:hover .progress-fill::after,
+        .progress-bar.dragging .progress-fill::after {
+          transform: translateY(-50%) scale(1);
+        }
+
+        .time-display {
+          display: flex;
+          justify-content: space-between;
+          margin-top: 8px;
+          font-size: 0.75rem;
+          font-weight: 500;
+          color: var(--text-muted);
+          font-variant-numeric: tabular-nums;
+        }
+
+        .controls {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-bottom: 24px;
+        }
+
+        .control-btn {
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 12px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-secondary);
+          transition: all 0.2s ease;
+        }
+
+        .control-btn:hover:not(:disabled) {
+          color: var(--text-primary);
+          background: var(--bg-tertiary);
+        }
+
+        .control-btn:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+
+        .control-btn.play-btn {
+          width: 64px;
+          height: 64px;
+          background: var(--accent);
+          color: white;
+          box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .control-btn.play-btn:hover:not(:disabled) {
+          transform: scale(1.05);
+          background: #818cf8;
+        }
+
+        .control-btn.play-btn:active:not(:disabled) {
+          transform: scale(0.98);
+        }
+
+        .volume-container {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          padding: 12px 16px;
+          background: var(--bg-secondary);
+          border-radius: 12px;
+        }
+
+        .volume-btn {
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-secondary);
+          transition: color 0.2s ease;
+        }
+
+        .volume-btn:hover {
+          color: var(--text-primary);
+        }
+
+        .volume-slider {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100px;
+          height: 4px;
+          background: var(--bg-tertiary);
+          border-radius: 2px;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 14px;
+          height: 14px;
+          background: var(--text-primary);
+          border-radius: 50%;
+          cursor: pointer;
+          transition: transform 0.15s ease;
+        }
+
+        .volume-slider::-webkit-slider-thumb:hover {
+          transform: scale(1.2);
+        }
+
+        .keyboard-hint {
+          text-align: center;
+          font-size: 0.7rem;
+          color: var(--text-muted);
+          margin-top: 16px;
+          opacity: 0.6;
+        }
+
+        .keyboard-hint kbd {
+          background: var(--bg-tertiary);
+          padding: 2px 6px;
+          border-radius: 4px;
+          margin: 0 2px;
+        }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+
+        .loading {
+          animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        .status {
+          text-align: center;
+          font-size: 0.7rem;
+          color: var(--accent);
+          margin-bottom: 8px;
+        }
