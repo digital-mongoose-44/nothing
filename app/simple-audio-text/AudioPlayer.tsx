@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, memo } from "react";
+import { memo, useCallback } from "react";
 import { formatTime } from "../utils/format";
+import "./audioplayer.css";
 import { useAudioPlayer } from "./hooks/useAudioPlayer";
 import { useProgressDrag } from "./hooks/useProgressDrag";
 import type { AudioPlayerProps } from "./types/audio-player.types";
 import { KEYBOARD_SHORTCUTS, SKIP_AMOUNTS } from "./types/audio-player.types";
-import "./audioplayer.css";
 
 /**
  * AudioPlayer Component
