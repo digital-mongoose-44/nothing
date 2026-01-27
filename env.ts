@@ -18,6 +18,8 @@ const canDisableAuth = !isProduction && isAuthDisabled
 const DEFAULT_DEV_SECRET = 'dev-secret-key-min-32-chars-for-better-auth-development-only'
 
 export const envSchema = z.object({
+  // Database
+  DATABASE_URL: z.string().url().optional(),
   // Better Auth - required unless DISABLE_AUTH is enabled in development
   BETTER_AUTH_SECRET: emptyStringToUndefined(
     canDisableAuth ? z.string().min(32).default(DEFAULT_DEV_SECRET) : z.string().min(32)
