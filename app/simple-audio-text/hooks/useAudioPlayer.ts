@@ -201,6 +201,11 @@ export function useAudioPlayer(
     audio.addEventListener("ended", handleEnded);
     audio.addEventListener("error", handleError);
 
+    // Handle case where audio is already loaded (e.g., from browser cache on refresh)
+    if (audio.readyState >= 2) {
+      handleLoadedMetadata();
+    }
+
     return () => {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
       audio.removeEventListener("canplaythrough", handleLoadedMetadata);

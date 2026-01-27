@@ -8,14 +8,14 @@ export default function FigmaAudioPlayerPage() {
       </h1>
 
       <FigmaAudioPlayer
-        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        src="/sample-15s.mp3"
         timestamp="08:15:23"
         label="Alpha-1"
         transcript="Hostile contact detected at grid reference 4-7. Moving to intercept."
       />
 
       <FigmaAudioPlayer
-        src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        src="/sample-15s.mp3"
         timestamp="09:22:45"
         label="Bravo-2"
         transcript="All units be advised, we have visual confirmation of the target. Proceeding with caution."
