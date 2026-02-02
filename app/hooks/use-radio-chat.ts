@@ -3,7 +3,7 @@
  *
  * This hook manages chat state and handles the special flow for
  * radio traffic requests. It intercepts radio-related messages
- * and fetches data from the radio traffic API.
+ * and fetches data from the internal radio traffic API.
  */
 "use client";
 
@@ -32,7 +32,7 @@ const API_TIMEOUT_MS = 30000;
 // ============================================================================
 
 /**
- * Fetches radio traffic data from the backend API with timeout support.
+ * Fetches radio traffic data from the internal API with timeout support.
  */
 async function fetchRadioTraffic(
   incidentId: string,
@@ -217,7 +217,7 @@ export function useRadioChat(): UseRadioChatReturn {
         };
         setMessages((prev) => [...prev, loadingMessage]);
 
-        // Fetch data
+        // Fetch data from internal API
         const result = await fetchRadioTraffic(incidentId, controller.signal);
 
         if (result.success && result.data) {
@@ -249,7 +249,7 @@ export function useRadioChat(): UseRadioChatReturn {
       } else {
         // Generic message
         responseContent =
-          "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'. To test API errors, try incident 999 (not found) or incident error.";
+          "I received your message. Try asking for radio traffic, for example: 'Give me the radio traffic for incident 123'. To test error handling, try: 'test malformed json', 'test malformed missing field', or 'test malformed segment'.";
         parsedContent = {
           text: responseContent,
           uiElements: [],

@@ -1,9 +1,8 @@
 /**
  * radio-traffic/route.ts - Radio Traffic API Endpoint
  *
- * This Next.js API route handles requests for radio traffic recordings.
- * Currently returns mock data for development; in production, this would
- * connect to a real database or external service.
+ * This Next.js API route handles requests for radio traffic recordings
+ * using the DTO/DAL implementation for authenticated database access.
  *
  * Endpoint: POST /api/radio-traffic
  *
@@ -22,22 +21,15 @@
  * Error responses:
  * - 401: Unauthorized (no valid session)
  * - 400: Missing incident ID or invalid request
- * - 404: Incident not found (test with incident 999)
- * - 500: Server error (test with incident "error")
+ * - 404: Incident not found
+ * - 500: Server error
  */
 import { NextRequest, NextResponse } from "next/server";
 import type { TranscriptionSegment } from "../../types/ui-elements";
-import { verifySession } from "@/lib/dal/verifySession";
+import { RadioTrafficDAL } from "@/lib/dal/radio-traffic/radio-traffic.dal";
 
 // Re-export for consumers of this API module
 export type { TranscriptionSegment };
-
-// ============================================================================
-// CONFIGURATION
-// ============================================================================
-
-/** Default audio URL from environment variable, with fallback */
-const DEFAULT_AUDIO_URL = process.env.NEXT_PUBLIC_DEFAULT_AUDIO_URL || "/sample-15s.mp3";
 
 // ============================================================================
 // REQUEST/RESPONSE TYPES
@@ -91,104 +83,22 @@ export interface RadioTrafficErrorResponse {
 }
 
 // ============================================================================
-// MOCK DATA GENERATION
-// ============================================================================
-
-/**
- * Generates mock radio traffic data for a given incident ID.
- *
- * In production, this would:
- * - Query a database for the incident
- * - Retrieve associated audio recordings
- * - Return real transcription data
- *
- * Currently returns static mock data with the incident ID interpolated.
- *
- * @param incidentId - The incident ID to generate data for
- * @returns Complete RadioTrafficResponse with mock data
- */
-function generateMockRadioTraffic(incidentId: string): RadioTrafficResponse {
-  // Mock transcription data simulating a structure fire response
-  // Includes multiple speakers and one unknown speaker segment
-  const transcription: TranscriptionSegment[] = [
-    {
-      speaker: "Dispatch",
-      text: `Unit 42, respond to incident ${incidentId}, structure fire reported.`,
-      startTime: 0,
-      endTime: 4.5,
-    },
-    {
-      speaker: "Unit 42",
-      text: "Copy dispatch, Unit 42 responding.",
-      startTime: 5.0,
-      endTime: 7.2,
-    },
-    {
-      speaker: "Unit 42",
-      text: "On scene, smoke visible from second floor.",
-      startTime: 12.0,
-      endTime: 15.3,
-    },
-    {
-      speaker: null, // Unknown speaker - tests null handling
-      text: "Requesting additional units.",
-      startTime: 16.0,
-      endTime: 18.0,
-    },
-    {
-      speaker: "Dispatch",
-      text: "Copy Unit 42, dispatching Engine 7 and Ladder 3 to your location.",
-      startTime: 19.5,
-      endTime: 24.0,
-    },
-    {
-      speaker: "Engine 7",
-      text: "Engine 7 responding, ETA five minutes.",
-      startTime: 25.0,
-      endTime: 27.5,
-    },
-  ];
-
-  // Calculate duration from last segment's end time
-  const duration = transcription[transcription.length - 1].endTime;
-
-  return {
-    type: "radio",
-    payload: {
-      // Audio URL from environment variable (defaults to local sample)
-      audioUrl: DEFAULT_AUDIO_URL,
-      transcription,
-      metadata: {
-        incidentId,
-        duration,
-        recordedAt: new Date().toISOString(),
-      },
-    },
-    textResponse: `Here is the radio traffic for incident ${incidentId}:`,
-  };
-}
-
-// ============================================================================
 // API ROUTE HANDLER
 // ============================================================================
 
 /**
  * POST /api/radio-traffic
  *
- * Handles requests for radio traffic data by incident ID.
- *
- * Special test cases:
- * - incidentId "999" → Returns 404 (not found)
- * - incidentId "error" → Returns 500 (server error)
- * - Any other ID → Returns mock radio traffic data
- *
- * Includes simulated 800ms latency to demonstrate loading states.
+ * Fetches radio traffic data for an incident using the DAL.
+ * Returns the most recent radio traffic record formatted for the chat UI.
  */
 export async function POST(request: NextRequest) {
   try {
-    // Verify user session
-    const session = await verifySession();
-    if (!session) {
+    // Authenticate and get DAL instance
+    let dal: RadioTrafficDAL;
+    try {
+      dal = await RadioTrafficDAL.create();
+    } catch {
       return NextResponse.json<RadioTrafficErrorResponse>(
         { error: "Unauthorized", code: "UNAUTHORIZED" },
         { status: 401 }
@@ -206,39 +116,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ─── Simulated network latency ───
-    // Allows testing of loading states (skeleton display)
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    // Fetch radio traffic from the database via DAL
+    const result = await dal.listByIncident(body.incidentId, { pageSize: 1 });
 
-    // ─── Test error scenarios ───
-    // These special IDs trigger error responses for testing
-
-    // Test: 404 Not Found
-    if (body.incidentId === "999") {
+    if (result.items.length === 0) {
       return NextResponse.json<RadioTrafficErrorResponse>(
-        { error: "Incident not found", code: "INCIDENT_NOT_FOUND" },
+        { error: "No radio traffic found for this incident", code: "INCIDENT_NOT_FOUND" },
         { status: 404 }
       );
     }
 
-    // Test: 500 Internal Server Error
-    if (body.incidentId === "error") {
+    const item = result.items[0];
+    const transcription = Array.isArray(item.transcription)
+      ? (item.transcription as Array<{ start: number; end: number; text: string; speaker?: string | null }>)
+      : [];
+
+    const response: RadioTrafficResponse = {
+      type: "radio",
+      payload: {
+        audioUrl: item.audioUrl,
+        transcription: transcription.map((seg) => ({
+          speaker: seg.speaker ?? null,
+          text: seg.text,
+          startTime: seg.start,
+          endTime: seg.end,
+        })),
+        metadata: {
+          incidentId: item.incidentId,
+          duration: item.duration,
+          recordedAt: item.createdAt.toISOString(),
+        },
+      },
+      textResponse: `Here is the radio traffic for incident ${body.incidentId}:`,
+    };
+
+    return NextResponse.json(response);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error";
+
+    if (message.includes("not found") || message.includes("Not found")) {
       return NextResponse.json<RadioTrafficErrorResponse>(
-        { error: "Internal server error", code: "INTERNAL_ERROR" },
-        { status: 500 }
+        { error: message, code: "INCIDENT_NOT_FOUND" },
+        { status: 404 }
       );
     }
 
-    // ─── Success case ───
-    // Generate and return mock radio traffic data
-    const response = generateMockRadioTraffic(body.incidentId);
-    return NextResponse.json(response);
+    if (message.includes("Not authorized")) {
+      return NextResponse.json<RadioTrafficErrorResponse>(
+        { error: message, code: "UNAUTHORIZED" },
+        { status: 403 }
+      );
+    }
 
-  } catch {
-    // JSON parsing failed or other request error
     return NextResponse.json<RadioTrafficErrorResponse>(
-      { error: "Invalid request body", code: "INVALID_REQUEST" },
-      { status: 400 }
+      { error: "Internal server error", code: "INTERNAL_ERROR" },
+      { status: 500 }
     );
   }
 }
